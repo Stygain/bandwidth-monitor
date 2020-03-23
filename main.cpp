@@ -21,6 +21,17 @@ typedef enum
 
 Mode mode = MODE_NORMAL;
 
+const char modeStrings[2][10] =
+{
+	"Normal",
+	"Search"
+};
+
+void getModeString(Mode mode, char *modeString)
+{
+	strcpy(modeString, modeStrings[mode]);
+};
+
 class InterfaceFooter 
 {
 	public:
@@ -32,8 +43,12 @@ class InterfaceFooter
 		void Print()
 		{
 			wclear(this->win);
+			char modeString[10];
+			getModeString(mode, modeString);
+			wprintw(this->win, " Mode: %s ",
+					modeString);
 			wattron(this->win, COLOR_PAIR(OPTION_COLOR));
-			mvwprintw(this->win, 0, 0, " %s | %s | %s | %s | %s ",
+			wprintw(this->win, " %s | %s | %s | %s | %s ",
 					"hjkl to select", "q quit", "d deselect", "s sort", "n normalize");
 			wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
 			wrefresh(this->win);
@@ -367,6 +382,7 @@ int main (int argc, char *argv[])
 					mode = MODE_NORMAL;
 					interfaceHeader->activeTab = -1;
 					interfaceHeader->Print();
+					interfaceFooter->Print();
 				}
 				else
 				{
@@ -431,6 +447,7 @@ int main (int argc, char *argv[])
 						break;
 					}
 					mode = MODE_SEARCH;
+					interfaceFooter->Print();
 					break;
 				}
 				case KEY_LEFT:
@@ -472,6 +489,7 @@ int main (int argc, char *argv[])
 					}
 
 					mode = MODE_NORMAL;
+					interfaceFooter->Print();
 					// TODO do sorting
 					//sortInterfaces();
 					break;
