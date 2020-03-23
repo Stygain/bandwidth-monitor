@@ -6,26 +6,58 @@
 #include <ncurses.h>
 
 
+#define HEADER_COLOR 1
+#define ACTIVE_COLOR 2
+#define OPTION_COLOR 3
+
 int longest = 14;
+
+class InterfaceFooter 
+{
+	public:
+		InterfaceFooter()
+		{
+			this->win = newwin(1, COLS, LINES-1, 0);
+		}
+
+		void Print()
+		{
+			wclear(this->win);
+			wattron(this->win, COLOR_PAIR(OPTION_COLOR));
+			mvwprintw(this->win, 0, 0, "%s | %s | %s | %s",
+					"jk to select", "q quit", "d deselect", "s sort");
+			wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
+			wrefresh(this->win);
+		}
+
+	public:
+		char *name;
+		WINDOW *win;
+
+	private:
+		int placement;
+		unsigned long int r_bytes;
+		unsigned long int t_bytes;
+		unsigned long int r_packets;
+		unsigned long int t_packets;
+};
+
 
 class InterfaceHeader 
 {
 	public:
 		InterfaceHeader()
 		{
-			this->win = newwin(2, COLS, 0, 0);
-		}
-
-		void Refresh()
-		{
-			wrefresh(this->win);
+			this->win = newwin(1, COLS, 0, 0);
 		}
 
 		void Print()
 		{
 			wclear(this->win);
-			mvwprintw(this->win, 1, 1, "%*s | %s | %s | %s | %s",
+			wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			mvwprintw(this->win, 0, 1, "%*s | %s | %s | %s | %s",
 					longest, "Interface Name", "Rcvd Bytes", "Rcvd Pkts", "Sent Bytes", "Sent Pkts");
+			wattroff(this->win, COLOR_PAIR(HEADER_COLOR));
 			wrefresh(this->win);
 		}
 
@@ -73,9 +105,20 @@ class Interface
 		{
 			wclear(this->win);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+			if (this->active) {
+				wattron(this->win, COLOR_PAIR(ACTIVE_COLOR));
+			}
 			mvwprintw(this->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
 					longest, this->name, this->r_bytes, this->r_packets, this->t_bytes, this->t_packets);
+			if (this->active) {
+				wattroff(this->win, COLOR_PAIR(ACTIVE_COLOR));
+			}
 			wrefresh(this->win);
+		}
+
+		void SetActive(bool active)
+		{
+			this->active = active;
 		}
 
 	public:
@@ -84,6 +127,7 @@ class Interface
 
 	private:
 		int placement;
+		bool active = false;
 		unsigned long int r_bytes;
 		unsigned long int t_bytes;
 		unsigned long int r_packets;
@@ -92,6 +136,7 @@ class Interface
 
 InterfaceHeader *interfaceHeader;
 std::vector<Interface *> interfaces;
+InterfaceFooter *interfaceFooter;
 
 Interface *getMatchingInterface(char *ifname)
 {
@@ -107,7 +152,7 @@ Interface *getMatchingInterface(char *ifname)
 
 bool initializeNetInfo()
 {
-	int placement = 2;
+	int placement = 1;
 
 	FILE *fp = fopen("/proc/net/dev", "r");
 	char buf[200];
@@ -172,13 +217,17 @@ bool parseNetInfo()
 void updateScreen()
 {
 	interfaceHeader->Print();
-	interfaceHeader->Refresh();
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
 		interfaces[i]->Print();
-		interfaces[i]->Refresh();
 	}
+	interfaceFooter->Print();
 	refresh();
+}
+
+int modulo(int a, int b)
+{
+	return ((b + (a % b)) % b);
 }
 
 int main (int argc, char *argv[])
@@ -187,8 +236,20 @@ int main (int argc, char *argv[])
 	time_t lastTime;
 
 	initscr();
+	if (has_colors() == FALSE) {
+		endwin();
+		printf("Your terminal does not support color\n");
+		exit(1);
+	}
+
+	start_color();
+	init_pair(HEADER_COLOR, COLOR_GREEN, COLOR_BLACK);
+	init_pair(ACTIVE_COLOR, COLOR_WHITE, COLOR_BLUE);
+	init_pair(OPTION_COLOR, COLOR_BLACK, COLOR_GREEN);
+
 	cbreak();
 	nodelay(stdscr, TRUE);
+	noecho();
 
 	//WINDOW *win1 = newwin(3, COLS, 0, 0);
 	//WINDOW *win2 = newwin(3, COLS, 3, 0);
@@ -207,8 +268,11 @@ int main (int argc, char *argv[])
 	//wrefresh(win3);
 
 	interfaceHeader = new InterfaceHeader();
+	interfaceFooter = new InterfaceFooter();
 
 	initializeNetInfo();
+
+	int activeIndex = -1;
 
 	time(&lastTime);
 	time(&now);
@@ -230,7 +294,47 @@ int main (int argc, char *argv[])
 		int ch = getch();
 		if (ch != -1)
 		{
-			//printf("char: %d\n", ch);
+			if (ch == (int)'q')
+			{
+				break;
+			}
+			switch (ch)
+			{
+				case (int)'j':
+				{
+					if (activeIndex != -1)
+					{
+						interfaces[activeIndex]->SetActive(false);
+						interfaces[activeIndex]->Print();
+					}
+					activeIndex += 1;
+					activeIndex = modulo(activeIndex, (int)interfaces.size());
+					interfaces[activeIndex]->SetActive(true);
+					interfaces[activeIndex]->Print();
+					break;
+				}
+				case (int)'k':
+				{
+					if (activeIndex != -1)
+					{
+						interfaces[activeIndex]->SetActive(false);
+						interfaces[activeIndex]->Print();
+					}
+					else
+					{
+						activeIndex = 0;
+					}
+					activeIndex -= 1;
+					activeIndex = modulo(activeIndex, (int)interfaces.size());
+					interfaces[activeIndex]->SetActive(true);
+					interfaces[activeIndex]->Print();
+					break;
+				}
+				default:
+				{
+					break;
+				}
+			}
 		}
 	}
 
