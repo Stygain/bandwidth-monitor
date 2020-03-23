@@ -24,8 +24,8 @@ class InterfaceFooter
 		{
 			wclear(this->win);
 			wattron(this->win, COLOR_PAIR(OPTION_COLOR));
-			mvwprintw(this->win, 0, 0, "%s | %s | %s | %s",
-					"jk to select", "q quit", "d deselect", "s sort");
+			mvwprintw(this->win, 0, 0, " %s | %s | %s | %s | %s ",
+					"jk to select", "q quit", "d deselect", "s sort", "n normalize");
 			wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
 			wrefresh(this->win);
 		}
@@ -109,7 +109,7 @@ class Interface
 				wattron(this->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
 			mvwprintw(this->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
-					longest, this->name, this->r_bytes, this->r_packets, this->t_bytes, this->t_packets);
+					longest, this->name, (this->r_bytes - this->r_bytesNormalized), (this->r_packets - this->r_packetsNormalized), (this->t_bytes - this->t_bytesNormalized), (this->t_packets - this->t_packetsNormalized));
 			if (this->active) {
 				wattroff(this->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
@@ -121,6 +121,14 @@ class Interface
 			this->active = active;
 		}
 
+		void Normalize()
+		{
+			r_bytesNormalized = r_bytes;
+			t_bytesNormalized = t_bytes;
+			r_packetsNormalized = r_packets;
+			t_packetsNormalized = t_packets;
+		}
+
 	public:
 		char *name;
 		WINDOW *win;
@@ -129,9 +137,13 @@ class Interface
 		int placement;
 		bool active = false;
 		unsigned long int r_bytes;
+		unsigned long int r_bytesNormalized = 0;
 		unsigned long int t_bytes;
+		unsigned long int t_bytesNormalized = 0;
 		unsigned long int r_packets;
+		unsigned long int r_packetsNormalized = 0;
 		unsigned long int t_packets;
+		unsigned long int t_packetsNormalized = 0;
 };
 
 InterfaceHeader *interfaceHeader;
@@ -339,6 +351,15 @@ int main (int argc, char *argv[])
 					interfaces[activeIndex]->Print();
 
 					activeIndex = -1;
+					break;
+				}
+				case (int)'n':
+				{
+					for (size_t i = 0; i < interfaces.size(); ++i)
+					{
+						interfaces[i]->Normalize();
+						interfaces[i]->Print();
+					}
 					break;
 				}
 				default:
