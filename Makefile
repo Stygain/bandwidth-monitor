@@ -18,10 +18,10 @@ clean:
 	rm $(EXECUTABLE)
 
 $(OBJECTS): %.o: %.cpp
-	g++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+	g++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@ -lncurses
 
 $(EXECUTABLE): $(OBJECTS)
-	g++ $(OBJECTS) -o $(EXECUTABLE)
+	g++ $(OBJECTS) -o $(EXECUTABLE) -lncurses
 
 test: $(EXECUTABLE)
 	./$(EXECUTABLE)
