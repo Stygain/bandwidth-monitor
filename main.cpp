@@ -9,6 +9,7 @@
 #define HEADER_COLOR 1
 #define ACTIVE_COLOR 2
 #define OPTION_COLOR 3
+#define HEADER_ACTIVE_COLOR 4
 
 int longest = 14;
 
@@ -25,7 +26,7 @@ class InterfaceFooter
 			wclear(this->win);
 			wattron(this->win, COLOR_PAIR(OPTION_COLOR));
 			mvwprintw(this->win, 0, 0, " %s | %s | %s | %s | %s ",
-					"jk to select", "q quit", "d deselect", "s sort", "n normalize");
+					"hjkl to select", "q quit", "d deselect", "s sort", "n normalize");
 			wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
 			wrefresh(this->win);
 		}
@@ -55,18 +56,97 @@ class InterfaceHeader
 		{
 			wclear(this->win);
 			wattron(this->win, COLOR_PAIR(HEADER_COLOR));
-			mvwprintw(this->win, 0, 1, "%*s | %s | %s | %s | %s",
-					longest, "Interface Name", "Rcvd Bytes", "Rcvd Pkts", "Sent Bytes", "Sent Pkts");
+			if (this->activeTab == 0)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				mvwprintw(this->win, 0, 1, "%*s",
+						longest, "Interface Name");
+				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			}
+			else
+			{
+				mvwprintw(this->win, 0, 1, "%*s",
+						longest, "Interface Name");
+			}
+			wprintw(this->win, " | ");
+			if (this->activeTab == 1)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wprintw(this->win, "%s",
+						"Rcvd Bytes");
+				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			}
+			else
+			{
+				wprintw(this->win, "%s",
+						"Rcvd Bytes");
+			}
+			wprintw(this->win, " | ");
+			if (this->activeTab == 2)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wprintw(this->win, "%s",
+						"Rcvd Pkts");
+				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			}
+			else
+			{
+				wprintw(this->win, "%s",
+						"Rcvd Pkts");
+			}
+			wprintw(this->win, " | ");
+			if (this->activeTab == 3)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wprintw(this->win, "%s",
+						"Sent Bytes");
+				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			}
+			else
+			{
+				wprintw(this->win, "%s",
+						"Sent Bytes");
+			}
+			wprintw(this->win, " | ");
+			if (this->activeTab == 4)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wprintw(this->win, "%s",
+						"Sent Pkts");
+				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			}
+			else
+			{
+				wprintw(this->win, "%s",
+						"Sent Pkts");
+			}
 			wattroff(this->win, COLOR_PAIR(HEADER_COLOR));
 			wrefresh(this->win);
+		}
+
+		//void SetActive(int index)
+		//{
+		//	this->activeTab = index;
+		//}
+		
+		int GetTabCount()
+		{
+			return this->tabCount;
 		}
 
 	public:
 		char *name;
 		WINDOW *win;
+		int activeTab = -1;
 
 	private:
 		int placement;
+		int tabCount = 5;
 		unsigned long int r_bytes;
 		unsigned long int t_bytes;
 		unsigned long int r_packets;
@@ -258,6 +338,7 @@ int main (int argc, char *argv[])
 	init_pair(HEADER_COLOR, COLOR_GREEN, COLOR_BLACK);
 	init_pair(ACTIVE_COLOR, COLOR_WHITE, COLOR_BLUE);
 	init_pair(OPTION_COLOR, COLOR_BLACK, COLOR_GREEN);
+	init_pair(HEADER_ACTIVE_COLOR, COLOR_BLACK, COLOR_GREEN);
 
 	cbreak();
 	nodelay(stdscr, TRUE);
@@ -360,6 +441,31 @@ int main (int argc, char *argv[])
 						interfaces[i]->Normalize();
 						interfaces[i]->Print();
 					}
+					break;
+				}
+				case (int)'s':
+				{
+					//sortInterfaces();
+					break;
+				}
+				case KEY_LEFT:
+				case (int)'h':
+				{
+					if (interfaceHeader->activeTab == -1)
+					{
+						interfaceHeader->activeTab = 0;
+					}
+					interfaceHeader->activeTab -= 1;
+					interfaceHeader->activeTab = modulo(interfaceHeader->activeTab, interfaceHeader->GetTabCount());
+					interfaceHeader->Print();
+					break;
+				}
+				case KEY_RIGHT:
+				case (int)'l':
+				{
+					interfaceHeader->activeTab += 1;
+					interfaceHeader->activeTab = modulo(interfaceHeader->activeTab, interfaceHeader->GetTabCount());
+					interfaceHeader->Print();
 					break;
 				}
 				default:
