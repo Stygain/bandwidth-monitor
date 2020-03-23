@@ -52,6 +52,23 @@ class InterfaceHeader
 			this->win = newwin(1, COLS, 0, 0);
 		}
 
+		void PrintTabTitle(int index, char *text)
+		{
+			if (this->activeTab == index)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wprintw(this->win, "%s",
+						text);
+				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			}
+			else
+			{
+				wprintw(this->win, "%s",
+						text);
+			}
+		}
+
 		void Print()
 		{
 			wclear(this->win);
@@ -70,69 +87,16 @@ class InterfaceHeader
 						longest, "Interface Name");
 			}
 			wprintw(this->win, " | ");
-			if (this->activeTab == 1)
-			{
-				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wprintw(this->win, "%s",
-						"Rcvd Bytes");
-				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
-			}
-			else
-			{
-				wprintw(this->win, "%s",
-						"Rcvd Bytes");
-			}
+			this->PrintTabTitle(1, "Rcvd Bytes");
 			wprintw(this->win, " | ");
-			if (this->activeTab == 2)
-			{
-				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wprintw(this->win, "%s",
-						"Rcvd Pkts");
-				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
-			}
-			else
-			{
-				wprintw(this->win, "%s",
-						"Rcvd Pkts");
-			}
+			this->PrintTabTitle(2, "Rcvd Pkts");
 			wprintw(this->win, " | ");
-			if (this->activeTab == 3)
-			{
-				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wprintw(this->win, "%s",
-						"Sent Bytes");
-				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
-			}
-			else
-			{
-				wprintw(this->win, "%s",
-						"Sent Bytes");
-			}
+			this->PrintTabTitle(3, "Sent Bytes");
 			wprintw(this->win, " | ");
-			if (this->activeTab == 4)
-			{
-				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wprintw(this->win, "%s",
-						"Sent Pkts");
-				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
-			}
-			else
-			{
-				wprintw(this->win, "%s",
-						"Sent Pkts");
-			}
+			this->PrintTabTitle(4, "Sent Pkts");
 			wattroff(this->win, COLOR_PAIR(HEADER_COLOR));
 			wrefresh(this->win);
 		}
-
-		//void SetActive(int index)
-		//{
-		//	this->activeTab = index;
-		//}
 		
 		int GetTabCount()
 		{
