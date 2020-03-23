@@ -14,8 +14,12 @@ class Interface {
 			strcpy(this->name, name);
 
 			this->placement = placement;
-			this->win = newwin(3, COLS, this->placement, 0);
-			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+			this->win = newwin(3, COLS-3, this->placement, 0);
+		}
+
+		void Refresh()
+		{
+			wrefresh(this->win);
 		}
 
 		void Update(unsigned long int r_bytes,
@@ -31,10 +35,11 @@ class Interface {
 
 		void Print()
 		{
-			wprintw(this->win, "asdf");
-			//wprintw(this->win, "%s: rb: %lu rp: %lu tb: %lu tp: %lu\n",
-			//		this->name, this->r_bytes, this->r_packets, this->t_bytes, this->t_packets);
-			//wrefresh(this->win);
+			wclear(this->win);
+			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+			mvwprintw(this->win, 1, 1, "%s: rb: %lu rp: %lu tb: %lu tp: %lu\n",
+					this->name, this->r_bytes, this->r_packets, this->t_bytes, this->t_packets);
+			wrefresh(this->win);
 		}
 
 	public:
@@ -87,12 +92,12 @@ bool initializeNetInfo()
 		interfaces.push_back(new Interface(ifname, placement));
 		placement += 3;
 	}
-	wrefresh(stdscr);
 
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
-		wrefresh(interfaces[i]->win);
+		interfaces[i]->Refresh();
 	}
+	refresh();
 
 	fclose(fp);
 }
@@ -115,8 +120,7 @@ bool parseNetInfo()
 	while (fgets(buf, 200, fp)) {
 		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
 				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
-		//printw("%s: rbytes: %lu rpackets: %lu tbytes: %lu tpackets: %lu\n",
-		//		ifname, r_bytes, r_packets, t_bytes, t_packets);
+
 		getMatchingInterface(ifname)->Update(r_bytes, t_bytes, r_packets, t_packets);
 	}
 
@@ -125,16 +129,12 @@ bool parseNetInfo()
 
 void updateScreen()
 {
-	//clear();
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
 		interfaces[i]->Print();
+		interfaces[i]->Refresh();
 	}
-	wrefresh(stdscr);
-	for (size_t i = 0; i < interfaces.size(); ++i)
-	{
-		wrefresh(interfaces[i]->win);
-	}
+	refresh();
 }
 
 int main (int argc, char *argv[])
@@ -142,14 +142,6 @@ int main (int argc, char *argv[])
 	initscr();
 	cbreak();
 	nodelay(stdscr, TRUE);
-	//whline(stdscr, ACS_HLINE, 30);
-	//refresh();
-	//WINDOW *win = newwin(3, COLS, 0, 0);
-	//wborder(win, 0, 0, 0, 0, 0, 0, 0, 0);
-	////whline(win, ACS_HLINE, COLS-4);
-	//wrefresh(win);
-	//wprintw(win, "asdf");
-	//wrefresh(win);
 
 	//WINDOW *win1 = newwin(3, COLS, 0, 0);
 	//WINDOW *win2 = newwin(3, COLS, 3, 0);
@@ -160,21 +152,21 @@ int main (int argc, char *argv[])
 	//wrefresh(win1);
 	//wrefresh(win2);
 	//wrefresh(win3);
-	//wprintw(win1, "asdf");
-	//wprintw(win2, "qwer");
-	//wprintw(win3, "uiop");
+	//mvwprintw(win1, 1, 1, "asdf");
+	//mvwprintw(win2, 1, 1, "qwer");
+	//mvwprintw(win3, 1, 1, "uiop");
 	//wrefresh(win1);
 	//wrefresh(win2);
 	//wrefresh(win3);
 
 	initializeNetInfo();
-	//while (true)
-	//{
-	//	parseNetInfo();
-	//	updateScreen();
-	//	std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	//	//int ch = getch();
-	//}
+	while (true)
+	{
+		parseNetInfo();
+		updateScreen();
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		//int ch = getch();
+	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(500));
 
