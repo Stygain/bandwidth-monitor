@@ -307,6 +307,7 @@ int main (int argc, char *argv[])
 	cbreak();
 	nodelay(stdscr, TRUE);
 	noecho();
+	keypad(stdscr, TRUE);
 
 	//WINDOW *win1 = newwin(3, COLS, 0, 0);
 	//WINDOW *win2 = newwin(3, COLS, 3, 0);
@@ -330,7 +331,7 @@ int main (int argc, char *argv[])
 	initializeNetInfo();
 
 	int activeIndex = -1;
-	keypad(stdscr, TRUE);
+	bool inSortMode = false;
 
 	time(&lastTime);
 	time(&now);
@@ -354,7 +355,16 @@ int main (int argc, char *argv[])
 		{
 			if (ch == (int)'q')
 			{
-				break;
+				if (inSortMode)
+				{
+					inSortMode = false;
+					interfaceHeader->activeTab = -1;
+					interfaceHeader->Print();
+				}
+				else
+				{
+					break;
+				}
 			}
 			switch (ch)
 			{
@@ -409,12 +419,17 @@ int main (int argc, char *argv[])
 				}
 				case (int)'s':
 				{
-					//sortInterfaces();
+					inSortMode = true;
 					break;
 				}
 				case KEY_LEFT:
 				case (int)'h':
 				{
+					if (!inSortMode)
+					{
+						break;
+					}
+
 					if (interfaceHeader->activeTab == -1)
 					{
 						interfaceHeader->activeTab = 0;
@@ -427,9 +442,26 @@ int main (int argc, char *argv[])
 				case KEY_RIGHT:
 				case (int)'l':
 				{
+					if (!inSortMode)
+					{
+						break;
+					}
+
 					interfaceHeader->activeTab += 1;
 					interfaceHeader->activeTab = modulo(interfaceHeader->activeTab, interfaceHeader->GetTabCount());
 					interfaceHeader->Print();
+					break;
+				}
+				case KEY_ENTER:
+				case 10:
+				{
+					if (!inSortMode)
+					{
+						break;
+					}
+					inSortMode = false;
+					// TODO do sorting
+					//sortInterfaces();
 					break;
 				}
 				default:
