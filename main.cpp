@@ -6,7 +6,45 @@
 
 #include <ncurses.h>
 
-class Interface {
+
+int longest = 14;
+
+class InterfaceHeader 
+{
+	public:
+		InterfaceHeader()
+		{
+			this->win = newwin(2, COLS, 0, 0);
+		}
+
+		void Refresh()
+		{
+			wrefresh(this->win);
+		}
+
+		void Print()
+		{
+			wclear(this->win);
+			//wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+			mvwprintw(this->win, 1, 1, "%*s %s %s %s %s",
+					longest, "Interface Name", "Rcvd Bytes", "Rcvd Pkts", "Sent Bytes", "Sent Pkts");
+			wrefresh(this->win);
+		}
+
+	public:
+		char *name;
+		WINDOW *win;
+
+	private:
+		int placement;
+		unsigned long int r_bytes;
+		unsigned long int t_bytes;
+		unsigned long int r_packets;
+		unsigned long int t_packets;
+};
+
+class Interface
+{
 	public:
 		Interface(char *name, int placement)
 		{
@@ -14,7 +52,7 @@ class Interface {
 			strcpy(this->name, name);
 
 			this->placement = placement;
-			this->win = newwin(3, COLS-3, this->placement, 0);
+			this->win = newwin(3, COLS, this->placement, 0);
 		}
 
 		void Refresh()
@@ -37,8 +75,8 @@ class Interface {
 		{
 			wclear(this->win);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
-			mvwprintw(this->win, 1, 1, "%s: rb: %lu rp: %lu tb: %lu tp: %lu\n",
-					this->name, this->r_bytes, this->r_packets, this->t_bytes, this->t_packets);
+			mvwprintw(this->win, 1, 1, "%*s %10lu %9lu %10lu %9lu",
+					longest, this->name, this->r_bytes, this->r_packets, this->t_bytes, this->t_packets);
 			wrefresh(this->win);
 		}
 
@@ -54,6 +92,7 @@ class Interface {
 		unsigned long int t_packets;
 };
 
+InterfaceHeader *interfaceHeader;
 std::vector<Interface *> interfaces;
 
 Interface *getMatchingInterface(char *ifname)
@@ -70,7 +109,7 @@ Interface *getMatchingInterface(char *ifname)
 
 bool initializeNetInfo()
 {
-	int placement = 0;
+	int placement = 2;
 
 	FILE *fp = fopen("/proc/net/dev", "r");
 	char buf[200];
@@ -88,6 +127,11 @@ bool initializeNetInfo()
 	while (fgets(buf, 200, fp)) {
 		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
 				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+		int len = strlen(ifname);
+		if (len > longest)
+		{
+			longest = len;
+		}
 
 		interfaces.push_back(new Interface(ifname, placement));
 		placement += 3;
@@ -129,6 +173,8 @@ bool parseNetInfo()
 
 void updateScreen()
 {
+	interfaceHeader->Print();
+	interfaceHeader->Refresh();
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
 		interfaces[i]->Print();
@@ -158,6 +204,8 @@ int main (int argc, char *argv[])
 	//wrefresh(win1);
 	//wrefresh(win2);
 	//wrefresh(win3);
+
+	interfaceHeader = new InterfaceHeader();
 
 	initializeNetInfo();
 	while (true)
