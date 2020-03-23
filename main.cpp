@@ -13,6 +13,14 @@
 
 int longest = 14;
 
+typedef enum
+{
+	MODE_NORMAL,
+	MODE_SEARCH
+} Mode;
+
+Mode mode = MODE_NORMAL;
+
 class InterfaceFooter 
 {
 	public:
@@ -331,7 +339,6 @@ int main (int argc, char *argv[])
 	initializeNetInfo();
 
 	int activeIndex = -1;
-	bool inSortMode = false;
 
 	time(&lastTime);
 	time(&now);
@@ -355,9 +362,9 @@ int main (int argc, char *argv[])
 		{
 			if (ch == (int)'q')
 			{
-				if (inSortMode)
+				if (mode == MODE_SEARCH)
 				{
-					inSortMode = false;
+					mode = MODE_NORMAL;
 					interfaceHeader->activeTab = -1;
 					interfaceHeader->Print();
 				}
@@ -419,13 +426,17 @@ int main (int argc, char *argv[])
 				}
 				case (int)'s':
 				{
-					inSortMode = true;
+					if (mode != MODE_NORMAL)
+					{
+						break;
+					}
+					mode = MODE_SEARCH;
 					break;
 				}
 				case KEY_LEFT:
 				case (int)'h':
 				{
-					if (!inSortMode)
+					if (mode != MODE_SEARCH)
 					{
 						break;
 					}
@@ -442,7 +453,7 @@ int main (int argc, char *argv[])
 				case KEY_RIGHT:
 				case (int)'l':
 				{
-					if (!inSortMode)
+					if (mode != MODE_SEARCH)
 					{
 						break;
 					}
@@ -455,11 +466,12 @@ int main (int argc, char *argv[])
 				case KEY_ENTER:
 				case 10:
 				{
-					if (!inSortMode)
+					if (mode != MODE_SEARCH)
 					{
 						break;
 					}
-					inSortMode = false;
+
+					mode = MODE_NORMAL;
 					// TODO do sorting
 					//sortInterfaces();
 					break;
