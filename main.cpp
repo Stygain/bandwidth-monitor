@@ -273,6 +273,7 @@ int main (int argc, char *argv[])
 	initializeNetInfo();
 
 	int activeIndex = -1;
+	keypad(stdscr, TRUE);
 
 	time(&lastTime);
 	time(&now);
@@ -300,6 +301,7 @@ int main (int argc, char *argv[])
 			}
 			switch (ch)
 			{
+				case KEY_DOWN:
 				case (int)'j':
 				{
 					if (activeIndex != -1)
@@ -313,6 +315,7 @@ int main (int argc, char *argv[])
 					interfaces[activeIndex]->Print();
 					break;
 				}
+				case KEY_UP:
 				case (int)'k':
 				{
 					if (activeIndex != -1)
