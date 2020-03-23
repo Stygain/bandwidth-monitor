@@ -333,6 +333,14 @@ int main (int argc, char *argv[])
 					interfaces[activeIndex]->Print();
 					break;
 				}
+				case (int)'d':
+				{
+					interfaces[activeIndex]->SetActive(false);
+					interfaces[activeIndex]->Print();
+
+					activeIndex = -1;
+					break;
+				}
 				default:
 				{
 					break;
