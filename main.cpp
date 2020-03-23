@@ -1,8 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <vector>
-#include <thread>
-#include <chrono>
+#include <time.h>
 
 #include <ncurses.h>
 
@@ -25,8 +24,7 @@ class InterfaceHeader
 		void Print()
 		{
 			wclear(this->win);
-			//wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
-			mvwprintw(this->win, 1, 1, "%*s %s %s %s %s",
+			mvwprintw(this->win, 1, 1, "%*s | %s | %s | %s | %s",
 					longest, "Interface Name", "Rcvd Bytes", "Rcvd Pkts", "Sent Bytes", "Sent Pkts");
 			wrefresh(this->win);
 		}
@@ -75,7 +73,7 @@ class Interface
 		{
 			wclear(this->win);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
-			mvwprintw(this->win, 1, 1, "%*s %10lu %9lu %10lu %9lu",
+			mvwprintw(this->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
 					longest, this->name, this->r_bytes, this->r_packets, this->t_bytes, this->t_packets);
 			wrefresh(this->win);
 		}
@@ -130,7 +128,7 @@ bool initializeNetInfo()
 		int len = strlen(ifname);
 		if (len > longest)
 		{
-			longest = len;
+			longest = len + 1;
 		}
 
 		interfaces.push_back(new Interface(ifname, placement));
@@ -185,6 +183,9 @@ void updateScreen()
 
 int main (int argc, char *argv[])
 {
+	time_t now;
+	time_t lastTime;
+
 	initscr();
 	cbreak();
 	nodelay(stdscr, TRUE);
@@ -208,15 +209,30 @@ int main (int argc, char *argv[])
 	interfaceHeader = new InterfaceHeader();
 
 	initializeNetInfo();
+
+	time(&lastTime);
+	time(&now);
+	double diff;
+	double lastDiff;
 	while (true)
 	{
-		parseNetInfo();
-		updateScreen();
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		//int ch = getch();
-	}
+		time(&now);
+		diff = difftime(now, lastTime);
+		if (diff > lastDiff)
+		{
+			lastDiff = diff;
+			parseNetInfo();
+			updateScreen();
+			time(&lastTime);
+			time(&now);
+		}
 
-	std::this_thread::sleep_for(std::chrono::seconds(500));
+		int ch = getch();
+		if (ch != -1)
+		{
+			//printf("char: %d\n", ch);
+		}
+	}
 
 	endwin();
 
