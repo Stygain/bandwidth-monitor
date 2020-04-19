@@ -10,6 +10,7 @@
 #define ACTIVE_COLOR 2
 #define OPTION_COLOR 3
 #define HEADER_ACTIVE_COLOR 4
+#define HEADER_SORT_COLOR 5
 
 int longest = 14;
 
@@ -24,7 +25,7 @@ Mode mode = MODE_NORMAL;
 const char modeStrings[2][10] =
 {
 	"Normal",
-	"Search"
+	"Sort"
 };
 
 void getModeString(Mode mode, char *modeString)
@@ -32,7 +33,16 @@ void getModeString(Mode mode, char *modeString)
 	strcpy(modeString, modeStrings[mode]);
 };
 
-class InterfaceFooter 
+typedef enum
+{
+	HEADER_INTERFACE_NAME,
+	HEADER_RCVD_BYTES,
+	HEADER_RCVD_PKTS,
+	HEADER_SENT_BYTES,
+	HEADER_SENT_PKTS
+} InterfaceHeaderContent;
+
+class InterfaceFooter
 {
 	public:
 		InterfaceFooter()
@@ -48,8 +58,16 @@ class InterfaceFooter
 			wprintw(this->win, " Mode: %s ",
 					modeString);
 			wattron(this->win, COLOR_PAIR(OPTION_COLOR));
-			wprintw(this->win, " %s | %s | %s | %s | %s ",
-					"hjkl to select", "q quit", "d deselect", "s sort", "n normalize");
+			if (mode == MODE_SEARCH)
+			{
+				wprintw(this->win, " %s | %s | %s | %s ",
+						"hl to Select", "q Quit", "d Deselect", "enter Select");
+			}
+			else
+			{
+				wprintw(this->win, " %s | %s | %s | %s | %s | %s ",
+				"jk to Select", "q Quit", "d Deselect", "s Sort", "n Zero", "N Un-Zero");
+			}
 			wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
 			wrefresh(this->win);
 		}
@@ -67,7 +85,7 @@ class InterfaceFooter
 };
 
 
-class InterfaceHeader 
+class InterfaceHeader
 {
 	public:
 		InterfaceHeader()
@@ -83,6 +101,14 @@ class InterfaceHeader
 				wprintw(this->win, "%s",
 						text);
 				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
+			}
+			else if (this->sortingHeader == index)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_SORT_COLOR));
+				wprintw(this->win, "%s",
+						text);
+				wattroff(this->win, COLOR_PAIR(HEADER_SORT_COLOR));
 				wattron(this->win, COLOR_PAIR(HEADER_COLOR));
 			}
 			else
@@ -120,7 +146,7 @@ class InterfaceHeader
 			wattroff(this->win, COLOR_PAIR(HEADER_COLOR));
 			wrefresh(this->win);
 		}
-		
+
 		int GetTabCount()
 		{
 			return this->tabCount;
@@ -129,6 +155,7 @@ class InterfaceHeader
 	public:
 		char *name;
 		WINDOW *win;
+		int sortingHeader = -1;
 		int activeTab = -1;
 
 	private:
@@ -176,7 +203,7 @@ class Interface
 				wattron(this->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
 			mvwprintw(this->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
-					longest, this->name, (this->r_bytes - this->r_bytesNormalized), (this->r_packets - this->r_packetsNormalized), (this->t_bytes - this->t_bytesNormalized), (this->t_packets - this->t_packetsNormalized));
+					longest, this->name, (this->r_bytes - this->r_bytesZeroed), (this->r_packets - this->r_packetsZeroed), (this->t_bytes - this->t_bytesZeroed), (this->t_packets - this->t_packetsZeroed));
 			if (this->active) {
 				wattroff(this->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
@@ -188,12 +215,20 @@ class Interface
 			this->active = active;
 		}
 
-		void Normalize()
+		void Zero()
 		{
-			r_bytesNormalized = r_bytes;
-			t_bytesNormalized = t_bytes;
-			r_packetsNormalized = r_packets;
-			t_packetsNormalized = t_packets;
+			r_bytesZeroed = r_bytes;
+			t_bytesZeroed = t_bytes;
+			r_packetsZeroed = r_packets;
+			t_packetsZeroed = t_packets;
+		}
+
+		void UnZero()
+		{
+			r_bytesZeroed = 0;
+			t_bytesZeroed = 0;
+			r_packetsZeroed = 0;
+			t_packetsZeroed = 0;
 		}
 
 	public:
@@ -204,13 +239,13 @@ class Interface
 		int placement;
 		bool active = false;
 		unsigned long int r_bytes;
-		unsigned long int r_bytesNormalized = 0;
+		unsigned long int r_bytesZeroed = 0;
 		unsigned long int t_bytes;
-		unsigned long int t_bytesNormalized = 0;
+		unsigned long int t_bytesZeroed = 0;
 		unsigned long int r_packets;
-		unsigned long int r_packetsNormalized = 0;
+		unsigned long int r_packetsZeroed = 0;
 		unsigned long int t_packets;
-		unsigned long int t_packetsNormalized = 0;
+		unsigned long int t_packetsZeroed = 0;
 };
 
 InterfaceHeader *interfaceHeader;
@@ -309,6 +344,24 @@ int modulo(int a, int b)
 	return ((b + (a % b)) % b);
 }
 
+void sortInterfaces(InterfaceHeaderContent column)
+{
+	Interface *tmp = NULL;
+	for (size_t i = 0; i < (interfaces.size() - 1); ++i)
+	{
+		for (size_t j = (i + 1); j < interfaces.size(); ++j)
+		{
+			if (strcmp(interfaces[i]->name, interfaces[j]->name) > 0)
+			{
+				tmp = interfaces[i];
+				interfaces[i] = interfaces[j];
+				interfaces[j] = tmp;
+			}
+		}
+	}
+	updateScreen();
+}
+
 int main (int argc, char *argv[])
 {
 	time_t now;
@@ -326,6 +379,7 @@ int main (int argc, char *argv[])
 	init_pair(ACTIVE_COLOR, COLOR_WHITE, COLOR_BLUE);
 	init_pair(OPTION_COLOR, COLOR_BLACK, COLOR_GREEN);
 	init_pair(HEADER_ACTIVE_COLOR, COLOR_BLACK, COLOR_GREEN);
+	init_pair(HEADER_SORT_COLOR, COLOR_WHITE, COLOR_GREEN);
 
 	cbreak();
 	nodelay(stdscr, TRUE);
@@ -375,6 +429,9 @@ int main (int argc, char *argv[])
 		int ch = getch();
 		if (ch != -1)
 		{
+			if (ch == KEY_RESIZE) {
+				// Do something
+			}
 			if (ch == (int)'q')
 			{
 				if (mode == MODE_SEARCH)
@@ -433,9 +490,28 @@ int main (int argc, char *argv[])
 				}
 				case (int)'n':
 				{
+					if (mode != MODE_NORMAL)
+					{
+						break;
+					}
+
 					for (size_t i = 0; i < interfaces.size(); ++i)
 					{
-						interfaces[i]->Normalize();
+						interfaces[i]->Zero();
+						interfaces[i]->Print();
+					}
+					break;
+				}
+				case (int)'N':
+				{
+					if (mode != MODE_NORMAL)
+					{
+						break;
+					}
+
+					for (size_t i = 0; i < interfaces.size(); ++i)
+					{
+						interfaces[i]->UnZero();
 						interfaces[i]->Print();
 					}
 					break;
@@ -446,6 +522,7 @@ int main (int argc, char *argv[])
 					{
 						break;
 					}
+
 					mode = MODE_SEARCH;
 					interfaceFooter->Print();
 					break;
@@ -490,8 +567,10 @@ int main (int argc, char *argv[])
 
 					mode = MODE_NORMAL;
 					interfaceFooter->Print();
-					// TODO do sorting
-					//sortInterfaces();
+					interfaceHeader->sortingHeader = interfaceHeader->activeTab;
+					interfaceHeader->activeTab = -1;
+					interfaceHeader->Print();
+					sortInterfaces((InterfaceHeaderContent)interfaceHeader->sortingHeader);
 					break;
 				}
 				default:
