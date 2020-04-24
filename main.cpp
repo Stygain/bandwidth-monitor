@@ -2,6 +2,7 @@
 #include <string.h>
 #include <vector>
 #include <time.h>
+#include <fstream>
 
 #include <ncurses.h>
 
@@ -13,6 +14,7 @@
 #define HEADER_SORT_COLOR 5
 
 int longest = 14;
+std::ofstream logfile;
 
 typedef enum
 {
@@ -255,13 +257,13 @@ class Interface
 			t_packetsZeroed = 0;
 		}
 
+		void setInterfaceRow(InterfaceRow *interfaceRow)
+		{
+			this->interfaceRow = interfaceRow;
+		}
+
 	public:
 		char *name;
-
-	private:
-		InterfaceRow * interfaceRow = NULL;
-		int placement;
-		bool active = false;
 		unsigned long int r_bytes;
 		unsigned long int r_bytesZeroed = 0;
 		unsigned long int t_bytes;
@@ -270,6 +272,11 @@ class Interface
 		unsigned long int r_packetsZeroed = 0;
 		unsigned long int t_packets;
 		unsigned long int t_packetsZeroed = 0;
+
+	private:
+		InterfaceRow * interfaceRow = NULL;
+		int placement;
+		bool active = false;
 };
 
 InterfaceHeader *interfaceHeader;
@@ -373,18 +380,99 @@ int modulo(int a, int b)
 
 void sortInterfaces(InterfaceHeaderContent column)
 {
-	Interface *tmp = NULL;
-	for (size_t i = 0; i < (interfaces.size() - 1); ++i)
+// HEADER_RCVD_BYTES,
+// HEADER_RCVD_PKTS,
+// HEADER_SENT_BYTES,
+// HEADER_SENT_PKTS
+	if (column == HEADER_RCVD_BYTES)
 	{
-		for (size_t j = (i + 1); j < interfaces.size(); ++j)
+		logfile << "Header rcvd bytes\n";
+		Interface *tmp = NULL;
+		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
-			if (strcmp(interfaces[i]->name, interfaces[j]->name) > 0)
+			for (size_t j = (i + 1); j < interfaces.size(); ++j)
 			{
-				tmp = interfaces[i];
-				interfaces[i] = interfaces[j];
-				interfaces[j] = tmp;
+				if ((interfaces[i]->r_bytes - interfaces[i]->r_bytesZeroed) < (interfaces[j]->r_bytes - interfaces[j]->r_bytesZeroed))
+				{
+					tmp = interfaces[i];
+					interfaces[i] = interfaces[j];
+					interfaces[j] = tmp;
+				}
 			}
 		}
+	}
+	else if (column == HEADER_RCVD_PKTS)
+	{
+		logfile << "Header rcvd pkts\n";
+		Interface *tmp = NULL;
+		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
+		{
+			for (size_t j = (i + 1); j < interfaces.size(); ++j)
+			{
+				if ((interfaces[i]->r_packets - interfaces[i]->r_packetsZeroed) < (interfaces[j]->r_packets - interfaces[j]->r_packetsZeroed))
+				{
+					tmp = interfaces[i];
+					interfaces[i] = interfaces[j];
+					interfaces[j] = tmp;
+				}
+			}
+		}
+	}
+	if (column == HEADER_SENT_BYTES)
+	{
+		logfile << "Header sent bytes\n";
+		Interface *tmp = NULL;
+		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
+		{
+			for (size_t j = (i + 1); j < interfaces.size(); ++j)
+			{
+				if ((interfaces[i]->t_bytes - interfaces[i]->t_bytesZeroed) < (interfaces[j]->t_bytes - interfaces[j]->t_bytesZeroed))
+				{
+					tmp = interfaces[i];
+					interfaces[i] = interfaces[j];
+					interfaces[j] = tmp;
+				}
+			}
+		}
+	}
+	else if (column == HEADER_SENT_PKTS)
+	{
+		logfile << "Header sent pkts\n";
+		Interface *tmp = NULL;
+		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
+		{
+			for (size_t j = (i + 1); j < interfaces.size(); ++j)
+			{
+				if ((interfaces[i]->t_packets - interfaces[i]->t_packetsZeroed) < (interfaces[j]->t_packets - interfaces[j]->t_packetsZeroed))
+				{
+					tmp = interfaces[i];
+					interfaces[i] = interfaces[j];
+					interfaces[j] = tmp;
+				}
+			}
+		}
+	}
+	// Interface *tmp = NULL;
+	// for (size_t i = 0; i < (interfaces.size() - 1); ++i)
+	// {
+	// 	for (size_t j = (i + 1); j < interfaces.size(); ++j)
+	// 	{
+	// 		if (strcmp(interfaces[i]->name, interfaces[j]->name) < 0)
+	// 		{
+	// 			logfile << interfaces[i]->name << " not greater than " << interfaces[j]->name << "\n";
+	// 			tmp = interfaces[i];
+	// 			interfaces[i] = interfaces[j];
+	// 			interfaces[j] = tmp;
+	// 		}
+	// 		else
+	// 		{
+	// 			logfile << interfaces[i]->name << " greater than " << interfaces[j]->name << "\n";
+	// 		}
+	// 	}
+	// }
+	for (size_t i = 0; i < interfaces.size(); ++i)
+	{
+		interfaces[i]->setInterfaceRow(interfaceRows[i]);
 	}
 	updateScreen();
 }
@@ -400,6 +488,8 @@ int main (int argc, char *argv[])
 		printf("Your terminal does not support color\n");
 		exit(1);
 	}
+
+	logfile.open("logs");
 
 	start_color();
 	init_pair(HEADER_COLOR, COLOR_GREEN, COLOR_BLACK);
@@ -609,6 +699,8 @@ int main (int argc, char *argv[])
 	}
 
 	endwin();
+
+	logfile.close();
 
 	return 0;
 }
