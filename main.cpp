@@ -167,21 +167,45 @@ class InterfaceHeader
 		unsigned long int t_packets;
 };
 
+class InterfaceRow
+{
+	public:
+		InterfaceRow(int placement)
+		{
+			this->placement = placement;
+			this->win = newwin(3, COLS, this->placement, 0);
+		}
+
+	public:
+		WINDOW *win;
+
+	private:
+		int placement;
+};
+
 class Interface
 {
 	public:
-		Interface(char *name, int placement)
+		Interface(char *name)
 		{
 			this->name = new char[strlen(name) + 1];
 			strcpy(this->name, name);
 
 			this->placement = placement;
-			this->win = newwin(3, COLS, this->placement, 0);
+		}
+
+		Interface(char *name, InterfaceRow * interfaceRow)
+		{
+			this->interfaceRow = interfaceRow;
+			this->name = new char[strlen(name) + 1];
+			strcpy(this->name, name);
+
+			this->placement = placement;
 		}
 
 		void Refresh()
 		{
-			wrefresh(this->win);
+			wrefresh(this->interfaceRow->win);
 		}
 
 		void Update(unsigned long int r_bytes,
@@ -197,17 +221,17 @@ class Interface
 
 		void Print()
 		{
-			wclear(this->win);
-			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+			wclear(this->interfaceRow->win);
+			wborder(this->interfaceRow->win, 0, 0, 0, 0, 0, 0, 0, 0);
 			if (this->active) {
-				wattron(this->win, COLOR_PAIR(ACTIVE_COLOR));
+				wattron(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
-			mvwprintw(this->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
+			mvwprintw(this->interfaceRow->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
 					longest, this->name, (this->r_bytes - this->r_bytesZeroed), (this->r_packets - this->r_packetsZeroed), (this->t_bytes - this->t_bytesZeroed), (this->t_packets - this->t_packetsZeroed));
 			if (this->active) {
-				wattroff(this->win, COLOR_PAIR(ACTIVE_COLOR));
+				wattroff(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
-			wrefresh(this->win);
+			wrefresh(this->interfaceRow->win);
 		}
 
 		void SetActive(bool active)
@@ -233,9 +257,9 @@ class Interface
 
 	public:
 		char *name;
-		WINDOW *win;
 
 	private:
+		InterfaceRow * interfaceRow = NULL;
 		int placement;
 		bool active = false;
 		unsigned long int r_bytes;
@@ -249,6 +273,7 @@ class Interface
 };
 
 InterfaceHeader *interfaceHeader;
+std::vector<InterfaceRow *> interfaceRows;
 std::vector<Interface *> interfaces;
 InterfaceFooter *interfaceFooter;
 
@@ -290,7 +315,9 @@ bool initializeNetInfo()
 			longest = len + 1;
 		}
 
-		interfaces.push_back(new Interface(ifname, placement));
+		InterfaceRow *interfaceRow = new InterfaceRow(placement);
+		interfaceRows.push_back(interfaceRow);
+		interfaces.push_back(new Interface(ifname, interfaceRow));
 		placement += 3;
 	}
 
