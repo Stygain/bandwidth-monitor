@@ -161,7 +161,6 @@ class InterfaceHeader
 		int activeTab = -1;
 
 	private:
-		int placement;
 		int tabCount = 5;
 		unsigned long int r_bytes;
 		unsigned long int t_bytes;
@@ -192,8 +191,6 @@ class Interface
 		{
 			this->name = new char[strlen(name) + 1];
 			strcpy(this->name, name);
-
-			this->placement = placement;
 		}
 
 		Interface(char *name, InterfaceRow * interfaceRow)
@@ -201,8 +198,6 @@ class Interface
 			this->interfaceRow = interfaceRow;
 			this->name = new char[strlen(name) + 1];
 			strcpy(this->name, name);
-
-			this->placement = placement;
 		}
 
 		void Refresh()
@@ -275,14 +270,85 @@ class Interface
 
 	private:
 		InterfaceRow * interfaceRow = NULL;
-		int placement;
 		bool active = false;
 };
+
+
+class GraphRow
+{
+	public:
+		GraphRow(int height, int width, int placementX, int placementY, int positionIndex, int max)
+		{
+			this->positionIndex = positionIndex;
+			this->placementY = placementY;
+			this->placementX = placementX;
+			this->height = height;
+			this->width = width;
+			this->max = max;
+			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
+			// 113 wide == this->width
+			wprintw(this->win, "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfas123");
+
+			wrefresh(this->win);
+		}
+
+
+	public:
+		WINDOW *win;
+
+
+	private:
+		int positionIndex;
+		int placementY;
+		int placementX;
+		int height;
+		int width;
+		int max;
+};
+
+
+class Graph
+{
+	public:
+		Graph(int placement)
+		{
+			this->placement = placement;
+			this->win = newwin((LINES - this->placement - 1), COLS, this->placement, 0);
+			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+			wrefresh(this->win);
+		}
+
+		void Create()
+		{
+			//this->numColumns = (int)((COLS - 2) / 3);
+			this->numColumns = 5;
+			for (int i = 0; i < this->numColumns; i++)
+			{
+				this->gRows.push_back(new GraphRow(1, (COLS - 3), 1, (this->placement + ((i * 1) + 1)), i, this->numColumns));
+			}
+
+			wrefresh(this->win);
+		}
+
+
+	public:
+		WINDOW *win;
+
+
+	private:
+		int placement;
+
+		int numColumns;
+		std::vector<GraphRow *> gRows;
+};
+
 
 InterfaceHeader *interfaceHeader;
 std::vector<InterfaceRow *> interfaceRows;
 std::vector<Interface *> interfaces;
 InterfaceFooter *interfaceFooter;
+Graph *graph;
 
 Interface *getMatchingInterface(char *ifname)
 {
@@ -335,6 +401,8 @@ bool initializeNetInfo()
 	refresh();
 
 	fclose(fp);
+
+	return placement;
 }
 
 bool parseNetInfo()
@@ -522,7 +590,10 @@ int main (int argc, char *argv[])
 	interfaceHeader = new InterfaceHeader();
 	interfaceFooter = new InterfaceFooter();
 
-	initializeNetInfo();
+	int placement = initializeNetInfo();
+
+	graph = new Graph((interfaceRows.size() * 3) + 1);
+	graph->Create();
 
 	int activeIndex = -1;
 
@@ -568,6 +639,11 @@ int main (int argc, char *argv[])
 				case KEY_DOWN:
 				case (int)'j':
 				{
+					if (mode != MODE_NORMAL)
+					{
+						break;
+					}
+
 					if (activeIndex != -1)
 					{
 						interfaces[activeIndex]->SetActive(false);
@@ -582,6 +658,11 @@ int main (int argc, char *argv[])
 				case KEY_UP:
 				case (int)'k':
 				{
+					if (mode != MODE_NORMAL)
+					{
+						break;
+					}
+
 					if (activeIndex != -1)
 					{
 						interfaces[activeIndex]->SetActive(false);
