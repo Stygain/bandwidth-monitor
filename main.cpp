@@ -4,6 +4,7 @@
 #include <time.h>
 #include <fstream>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <ncurses.h>
 
@@ -53,6 +54,10 @@ class InterfaceFooter
 			this->win = newwin(1, COLS, LINES-1, 0);
 		}
 
+		~InterfaceFooter()
+		{
+		}
+
 		void Print()
 		{
 			wclear(this->win);
@@ -76,15 +81,9 @@ class InterfaceFooter
 		}
 
 	public:
-		char *name;
 		WINDOW *win;
 
 	private:
-		int placement;
-		unsigned long int r_bytes;
-		unsigned long int t_bytes;
-		unsigned long int r_packets;
-		unsigned long int t_packets;
 };
 
 
@@ -94,6 +93,10 @@ class InterfaceHeader
 		InterfaceHeader()
 		{
 			this->win = newwin(1, COLS, 0, 0);
+		}
+
+		~InterfaceHeader()
+		{
 		}
 
 		void PrintTabTitle(int index, char *text)
@@ -156,17 +159,12 @@ class InterfaceHeader
 		}
 
 	public:
-		char *name;
 		WINDOW *win;
 		int sortingHeader = -1;
 		int activeTab = -1;
 
 	private:
 		int tabCount = 5;
-		unsigned long int r_bytes;
-		unsigned long int t_bytes;
-		unsigned long int r_packets;
-		unsigned long int t_packets;
 };
 
 class InterfaceRow
@@ -176,6 +174,10 @@ class InterfaceRow
 		{
 			this->placement = placement;
 			this->win = newwin(3, COLS, this->placement, 0);
+		}
+
+		~InterfaceRow()
+		{
 		}
 
 	public:
@@ -199,6 +201,11 @@ class Interface
 			this->interfaceRow = interfaceRow;
 			this->name = new char[strlen(name) + 1];
 			strcpy(this->name, name);
+		}
+
+		~Interface()
+		{
+			delete this->name;
 		}
 
 		void Refresh()
@@ -283,6 +290,11 @@ class GraphDataColumn
 			this->value = (rand() % 11);
 		}
 
+		void Update()
+		{
+			this->value = (rand() % 11);
+		}
+
 		int GetValue()
 		{
 			return this->value;
@@ -299,7 +311,6 @@ class GraphRow
 	public:
 		GraphRow(int height, int width, int placementX, int placementY, int value, int max)
 		{
-			//this->positionIndex = positionIndex;
 			this->max = max;
 			this->value = value;
 			this->placementY = placementY;
@@ -313,14 +324,19 @@ class GraphRow
 			wrefresh(this->win);
 		}
 
+		~GraphRow()
+		{
+		}
+
 		void Update(std::vector<GraphDataColumn *> *gDataCols, int max)
 		{
+			wclear(this->win);
 			float currPos = (float)this->value / (float)this->max;
 			for (size_t i = 0; i < gDataCols->size(); i++)
 			{
 				float valuePercent = (float)gDataCols->at(i)->GetValue() / (float)max;
 				float split = (float)1 / (float)this->max;
-				logfile << "My value: " << this->value << " my max: " << this->max << " my perc: " << currPos << " its value: " << gDataCols->at(i)->GetValue() << " its max: " << max << " its perc: " << valuePercent << " split is: " << split << "\n";
+				//logfile << "My value: " << this->value << " my max: " << this->max << " my perc: " << currPos << " its value: " << gDataCols->at(i)->GetValue() << " its max: " << max << " its perc: " << valuePercent << " split is: " << split << "\n";
 				if (valuePercent >= currPos && valuePercent < (currPos + split))
 				{
 					mvwprintw(this->win, 0, i, "_");
@@ -344,7 +360,6 @@ class GraphRow
 
 
 	private:
-		//int positionIndex;
 		int value;
 		int max;
 		int placementY;
@@ -390,18 +405,23 @@ class Graph
 			wrefresh(this->win);
 		}
 
+		~Graph()
+		{
+			gDataCols.clear();
+			gRows.clear();
+		}
+
 		void Create()
 		{
-			//this->numCols = (int)((COLS - 2) / 2);
 			this->numCols = (this->width - 3);
-			logfile << "This width: " << this->width << " number of columns: " << this->numCols << "\n";
+			//logfile << "This width: " << this->width << " number of columns: " << this->numCols << "\n";
 			for (int i = 0; i < this->numCols; i++)
 			{
 				this->gDataCols.push_back(new GraphDataColumn());
 			}
 
 			this->numRows = (this->height - 2);
-			logfile << "This height: " << this->height << " number of rows: " << this->numRows << "\n";
+			//logfile << "This height: " << this->height << " number of rows: " << this->numRows << "\n";
 			for (int i = 0; i < this->numRows; i++)
 			{
 				this->gRows.push_back(new GraphRow(1, (this->width - 3), 1, (this->placement + ((i * 1) + 1)), (this->numRows - i - 1), (this->numRows - 1)));
@@ -415,7 +435,7 @@ class Graph
 			// Update the data
 			for (size_t i = 0; i < this->gDataCols.size(); i++)
 			{
-				//gDataCols[i]->Update();
+				gDataCols[i]->Update();
 			}
 
 			// Scan the data columns for the maximum
@@ -429,6 +449,7 @@ class Graph
 				}
 			}
 
+			// Print the graph contents
 			for (size_t i = 0; i < this->gRows.size(); i++)
 			{
 				gRows[i]->Update(&(this->gDataCols), max);
@@ -565,7 +586,7 @@ void sortInterfaces(InterfaceHeaderContent column)
 // HEADER_SENT_PKTS
 	if (column == HEADER_RCVD_BYTES)
 	{
-		logfile << "Header rcvd bytes\n";
+		//logfile << "Header rcvd bytes\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -582,7 +603,7 @@ void sortInterfaces(InterfaceHeaderContent column)
 	}
 	else if (column == HEADER_RCVD_PKTS)
 	{
-		logfile << "Header rcvd pkts\n";
+		//logfile << "Header rcvd pkts\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -599,7 +620,7 @@ void sortInterfaces(InterfaceHeaderContent column)
 	}
 	if (column == HEADER_SENT_BYTES)
 	{
-		logfile << "Header sent bytes\n";
+		//logfile << "Header sent bytes\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -616,7 +637,7 @@ void sortInterfaces(InterfaceHeaderContent column)
 	}
 	else if (column == HEADER_SENT_PKTS)
 	{
-		logfile << "Header sent pkts\n";
+		//logfile << "Header sent pkts\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -707,7 +728,6 @@ int main (int argc, char *argv[])
 	graph = new Graph((interfaceRows.size() * 3) + 1, COLS, (LINES - ((interfaceRows.size() * 3) + 1) - 1));
 	//graph = new Graph((interfaceRows.size() * 3) + 1, (int)(COLS/2), 20);
 	graph->Create();
-	graph->Update();
 
 	int activeIndex = -1;
 
@@ -724,9 +744,11 @@ int main (int argc, char *argv[])
 			lastDiff = diff;
 			parseNetInfo();
 			updateScreen();
+			graph->Update();
 			time(&lastTime);
 			time(&now);
 		}
+		usleep(100);
 
 		int ch = getch();
 		if (ch != -1)
@@ -892,6 +914,12 @@ int main (int argc, char *argv[])
 			}
 		}
 	}
+
+	interfaceRows.clear();
+	interfaces.clear();
+	delete interfaceHeader;
+	delete interfaceFooter;
+	delete graph;
 
 	endwin();
 
