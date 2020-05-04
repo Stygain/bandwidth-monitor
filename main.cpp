@@ -274,20 +274,58 @@ class Interface
 };
 
 
+class GraphDataColumn
+{
+	public:
+		GraphDataColumn()
+		{
+		}
+
+		int GetValue()
+		{
+			return this->value;
+		}
+
+
+	private:
+		int value = 4;
+};
+
+
 class GraphRow
 {
 	public:
-		GraphRow(int height, int width, int placementX, int placementY, int positionIndex, int max)
+		GraphRow(int height, int width, int placementX, int placementY, int value)
 		{
-			this->positionIndex = positionIndex;
+			//this->positionIndex = positionIndex;
+			//this->max = max;
+			this->value = value;
 			this->placementY = placementY;
 			this->placementX = placementX;
 			this->height = height;
 			this->width = width;
-			this->max = max;
 			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 			// 113 wide == this->width
-			wprintw(this->win, "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfas123");
+			//wprintw(this->win, "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfas123");
+
+			wrefresh(this->win);
+		}
+
+		void Update(std::vector<GraphDataColumn *> *gDataCols)
+		{
+			for (size_t i = 0; i < gDataCols->size(); i++)
+			{
+				if (gDataCols->at(i)->GetValue() == this->value)
+				{
+					wprintw(this->win, "_");
+					break;
+				}
+				else if (gDataCols->at(i)->GetValue() > this->value)
+				{
+					wprintw(this->win, "|");
+					break;
+				}
+			}
 
 			wrefresh(this->win);
 		}
@@ -298,13 +336,35 @@ class GraphRow
 
 
 	private:
-		int positionIndex;
+		//int positionIndex;
+		//int max;
+		int value;
 		int placementY;
 		int placementX;
 		int height;
 		int width;
-		int max;
 };
+
+
+//class GraphFooter {
+//	public:
+//		GraphFooter(int placement)
+//		{
+//			this->placement = placement;
+//			this->win = newwin(1, COLS, this->placement, 0);
+//			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+//
+//			wrefresh(this->win);
+//		}
+//
+//
+//	public:
+//		WINDOW *win;
+//
+//
+//	private:
+//		int placement;
+//};
 
 
 class Graph
@@ -321,11 +381,32 @@ class Graph
 
 		void Create()
 		{
-			//this->numColumns = (int)((COLS - 2) / 3);
-			this->numColumns = 5;
-			for (int i = 0; i < this->numColumns; i++)
+			//this->numCols = (int)((COLS - 2) / 2);
+			this->numCols = (COLS - 3);
+			for (int i = 0; i < this->numCols; i++)
 			{
-				this->gRows.push_back(new GraphRow(1, (COLS - 3), 1, (this->placement + ((i * 1) + 1)), i, this->numColumns));
+				this->gDataCols.push_back(new GraphDataColumn());
+			}
+
+			this->numRows = (LINES - this->placement - 3);
+			for (int i = 0; i < this->numRows; i++)
+			{
+				this->gRows.push_back(new GraphRow(1, (COLS - 3), 1, (this->placement + ((i * 1) + 1)), (this->numRows - i)));
+			}
+
+			wrefresh(this->win);
+		}
+
+		void Update()
+		{
+			for (size_t i = 0; i < this->gDataCols.size(); i++)
+			{
+				//gDataCols[i]->Update();
+			}
+
+			for (size_t i = 0; i < this->gRows.size(); i++)
+			{
+				gRows[i]->Update(&(this->gDataCols));
 			}
 
 			wrefresh(this->win);
@@ -339,8 +420,11 @@ class Graph
 	private:
 		int placement;
 
-		int numColumns;
+		int numRows;
+		int numCols;
 		std::vector<GraphRow *> gRows;
+		std::vector<GraphDataColumn *> gDataCols;
+		//GraphFooter *gFooter;
 };
 
 
@@ -594,6 +678,7 @@ int main (int argc, char *argv[])
 
 	graph = new Graph((interfaceRows.size() * 3) + 1);
 	graph->Create();
+	graph->Update();
 
 	int activeIndex = -1;
 
