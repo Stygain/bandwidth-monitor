@@ -3,6 +3,7 @@
 #include <vector>
 #include <time.h>
 #include <fstream>
+#include <stdlib.h>
 
 #include <ncurses.h>
 
@@ -279,6 +280,7 @@ class GraphDataColumn
 	public:
 		GraphDataColumn()
 		{
+			this->value = (rand() % 11);
 		}
 
 		int GetValue()
@@ -317,13 +319,13 @@ class GraphRow
 			{
 				if (gDataCols->at(i)->GetValue() == this->value)
 				{
-					wprintw(this->win, "_");
-					break;
+					//wprintw(this->win, "_");
+					mvwprintw(this->win, 0, i, "_");
 				}
 				else if (gDataCols->at(i)->GetValue() > this->value)
 				{
-					wprintw(this->win, "|");
-					break;
+					//wprintw(this->win, "|");
+					mvwprintw(this->win, 0, i, "|");
 				}
 			}
 
@@ -633,6 +635,7 @@ int main (int argc, char *argv[])
 {
 	time_t now;
 	time_t lastTime;
+	srand(time(NULL));
 
 	initscr();
 	if (has_colors() == FALSE) {
