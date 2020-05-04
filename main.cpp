@@ -297,10 +297,10 @@ class GraphDataColumn
 class GraphRow
 {
 	public:
-		GraphRow(int height, int width, int placementX, int placementY, int value)
+		GraphRow(int height, int width, int placementX, int placementY, int value, int max)
 		{
 			//this->positionIndex = positionIndex;
-			//this->max = max;
+			this->max = max;
 			this->value = value;
 			this->placementY = placementY;
 			this->placementX = placementX;
@@ -313,19 +313,27 @@ class GraphRow
 			wrefresh(this->win);
 		}
 
-		void Update(std::vector<GraphDataColumn *> *gDataCols)
+		void Update(std::vector<GraphDataColumn *> *gDataCols, int max)
 		{
+			float currPos = (float)this->value / (float)this->max;
 			for (size_t i = 0; i < gDataCols->size(); i++)
 			{
-				if (gDataCols->at(i)->GetValue() == this->value)
+				float valuePercent = (float)gDataCols->at(i)->GetValue() / (float)max;
+				float split = (float)1 / (float)this->max;
+				logfile << "My value: " << this->value << " my max: " << this->max << " my perc: " << currPos << " its value: " << gDataCols->at(i)->GetValue() << " its max: " << max << " its perc: " << valuePercent << " split is: " << split << "\n";
+				if (valuePercent >= currPos && valuePercent < (currPos + split))
 				{
 					//wprintw(this->win, "_");
 					mvwprintw(this->win, 0, i, "_");
 				}
-				else if (gDataCols->at(i)->GetValue() > this->value)
+				else if (valuePercent > currPos)
 				{
 					//wprintw(this->win, "|");
 					mvwprintw(this->win, 0, i, "|");
+				}
+				else if (valuePercent == 0 && currPos == 0)
+				{
+					mvwprintw(this->win, 0, i, "_");
 				}
 			}
 
@@ -339,8 +347,8 @@ class GraphRow
 
 	private:
 		//int positionIndex;
-		//int max;
 		int value;
+		int max;
 		int placementY;
 		int placementX;
 		int height;
@@ -393,7 +401,7 @@ class Graph
 			this->numRows = (LINES - this->placement - 3);
 			for (int i = 0; i < this->numRows; i++)
 			{
-				this->gRows.push_back(new GraphRow(1, (COLS - 3), 1, (this->placement + ((i * 1) + 1)), (this->numRows - i)));
+				this->gRows.push_back(new GraphRow(1, (COLS - 3), 1, (this->placement + ((i * 1) + 1)), (this->numRows - i - 1), (this->numRows - 1)));
 			}
 
 			wrefresh(this->win);
@@ -401,14 +409,26 @@ class Graph
 
 		void Update()
 		{
+			// Update the data
 			for (size_t i = 0; i < this->gDataCols.size(); i++)
 			{
 				//gDataCols[i]->Update();
 			}
 
+			// Scan the data columns for the maximum
+			int max = 0;
+			for (size_t i = 0; i < this->gDataCols.size(); i++)
+			{
+				int tempValue = gDataCols[i]->GetValue();
+				if (tempValue > max)
+				{
+					max = tempValue;
+				}
+			}
+
 			for (size_t i = 0; i < this->gRows.size(); i++)
 			{
-				gRows[i]->Update(&(this->gDataCols));
+				gRows[i]->Update(&(this->gDataCols), max);
 			}
 
 			wrefresh(this->win);
