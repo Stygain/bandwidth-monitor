@@ -323,12 +323,10 @@ class GraphRow
 				logfile << "My value: " << this->value << " my max: " << this->max << " my perc: " << currPos << " its value: " << gDataCols->at(i)->GetValue() << " its max: " << max << " its perc: " << valuePercent << " split is: " << split << "\n";
 				if (valuePercent >= currPos && valuePercent < (currPos + split))
 				{
-					//wprintw(this->win, "_");
 					mvwprintw(this->win, 0, i, "_");
 				}
 				else if (valuePercent > currPos)
 				{
-					//wprintw(this->win, "|");
 					mvwprintw(this->win, 0, i, "|");
 				}
 				else if (valuePercent == 0 && currPos == 0)
@@ -380,10 +378,13 @@ class GraphRow
 class Graph
 {
 	public:
-		Graph(int placement)
+		Graph(int placement, int width, int height)
 		{
 			this->placement = placement;
-			this->win = newwin((LINES - this->placement - 1), COLS, this->placement, 0);
+			this->width = width;
+			this->height = height;
+
+			this->win = newwin(this->height, this->width, this->placement, 0);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
 			wrefresh(this->win);
@@ -392,16 +393,18 @@ class Graph
 		void Create()
 		{
 			//this->numCols = (int)((COLS - 2) / 2);
-			this->numCols = (COLS - 3);
+			this->numCols = (this->width - 3);
+			logfile << "This width: " << this->width << " number of columns: " << this->numCols << "\n";
 			for (int i = 0; i < this->numCols; i++)
 			{
 				this->gDataCols.push_back(new GraphDataColumn());
 			}
 
-			this->numRows = (LINES - this->placement - 3);
+			this->numRows = (this->height - 2);
+			logfile << "This height: " << this->height << " number of rows: " << this->numRows << "\n";
 			for (int i = 0; i < this->numRows; i++)
 			{
-				this->gRows.push_back(new GraphRow(1, (COLS - 3), 1, (this->placement + ((i * 1) + 1)), (this->numRows - i - 1), (this->numRows - 1)));
+				this->gRows.push_back(new GraphRow(1, (this->width - 3), 1, (this->placement + ((i * 1) + 1)), (this->numRows - i - 1), (this->numRows - 1)));
 			}
 
 			wrefresh(this->win);
@@ -441,6 +444,8 @@ class Graph
 
 	private:
 		int placement;
+		int width;
+		int height;
 
 		int numRows;
 		int numCols;
@@ -699,7 +704,8 @@ int main (int argc, char *argv[])
 
 	int placement = initializeNetInfo();
 
-	graph = new Graph((interfaceRows.size() * 3) + 1);
+	graph = new Graph((interfaceRows.size() * 3) + 1, COLS, (LINES - ((interfaceRows.size() * 3) + 1) - 1));
+	//graph = new Graph((interfaceRows.size() * 3) + 1, (int)(COLS/2), 20);
 	graph->Create();
 	graph->Update();
 
