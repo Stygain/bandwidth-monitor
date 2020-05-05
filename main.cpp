@@ -40,6 +40,27 @@ void getModeString(Mode mode, char *modeString)
 
 typedef enum
 {
+	GT_BYTES_RECV,
+	GT_PKTS_RECV,
+	GT_BYTES_SEND,
+	GT_PKTS_SEND
+} GraphType;
+
+const char graphTypeStrings[4][20] =
+{
+	"Bytes received",
+	"Packets received",
+	"Bytes sent",
+	"Packets sent"
+};
+
+void getGraphTypeString(GraphType gt, char *graphTypeString)
+{
+	strcpy(graphTypeString, graphTypeStrings[gt]);
+};
+
+typedef enum
+{
 	HEADER_INTERFACE_NAME,
 	HEADER_RCVD_BYTES,
 	HEADER_RCVD_PKTS,
@@ -74,8 +95,8 @@ class InterfaceFooter
 			}
 			else
 			{
-				wprintw(this->win, " %s | %s | %s | %s | %s | %s ",
-				"jk to Select", "q Quit", "d Deselect", "s Sort", "n Zero", "N Un-Zero");
+				wprintw(this->win, " %s | %s | %s | %s | %s | %s | %s ",
+				"jk to Select", "enter Select", "q Quit", "d Deselect", "s Sort", "n Zero", "N Un-Zero");
 			}
 			wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
 			wrefresh(this->win);
@@ -219,9 +240,14 @@ class Interface
 				unsigned long int r_packets,
 				unsigned long int t_packets)
 		{
+			this->r_bytesLast = this->r_bytes;
 			this->r_bytes = r_bytes;
+			this->t_bytesLast = this->t_bytes;
 			this->t_bytes = t_bytes;
+			this->r_packetsLast = this->r_packets;
+			//logfile << "rpkts: " << r_packets << " old rpkts: " << this->r_packets << " diff: " << this->r_packetsLast << "\n";
 			this->r_packets = r_packets;
+			this->t_packetsLast = this->t_packets;
 			this->t_packets = t_packets;
 		}
 
@@ -269,12 +295,16 @@ class Interface
 	public:
 		char *name;
 		unsigned long int r_bytes;
+		unsigned long int r_bytesLast = 0;
 		unsigned long int r_bytesZeroed = 0;
 		unsigned long int t_bytes;
+		unsigned long int t_bytesLast = 0;
 		unsigned long int t_bytesZeroed = 0;
 		unsigned long int r_packets;
+		unsigned long int r_packetsLast = 0;
 		unsigned long int r_packetsZeroed = 0;
 		unsigned long int t_packets;
+		unsigned long int t_packetsLast = 0;
 		unsigned long int t_packetsZeroed = 0;
 
 	private:
@@ -286,9 +316,11 @@ class Interface
 class GraphDataColumn
 {
 	public:
-		GraphDataColumn()
+		GraphDataColumn(GraphType graphType, std::vector<Interface *> *interfaces)
 		{
+			this->graphType = graphType;
 			//this->value = (rand() % 11);
+			this->interfaces = interfaces;
 		}
 
 		void SetNext(GraphDataColumn *next)
@@ -300,7 +332,32 @@ class GraphDataColumn
 		{
 			if (next == NULL)
 			{
-				this->value = (rand() % 11);
+				if (graphType == GT_PKTS_RECV)
+				{
+					int pktsRecvDiff = 0;
+					for (size_t i = 0; i < this->interfaces->size(); i++)
+					{
+						if (this->interfaces->at(i)->r_packetsLast != 0)
+						{
+							pktsRecvDiff += this->interfaces->at(i)->r_packets - this->interfaces->at(i)->r_packetsLast;
+						}
+					}
+					logfile << "Pkts Recv Diff: " << pktsRecvDiff << "\n";
+					this->value = pktsRecvDiff;
+				}
+				else if (graphType == GT_PKTS_SEND)
+				{
+					int pktsSendDiff = 0;
+					for (size_t i = 0; i < this->interfaces->size(); i++)
+					{
+						if (this->interfaces->at(i)->t_packetsLast != 0)
+						{
+							pktsSendDiff += this->interfaces->at(i)->t_packets - this->interfaces->at(i)->t_packetsLast;
+						}
+					}
+					logfile << "Pkts Send Diff: " << pktsSendDiff << "\n";
+					this->value = pktsSendDiff;
+				}
 			}
 			else
 			{
@@ -315,8 +372,11 @@ class GraphDataColumn
 
 
 	private:
+		GraphType graphType;
 		int value = 0;
-		GraphDataColumn *next;
+		std::vector<Interface *> *interfaces;
+
+		GraphDataColumn *next = NULL;
 };
 
 
@@ -403,17 +463,23 @@ class GraphRow
 //		int placement;
 //};
 
+InterfaceHeader *interfaceHeader;
+std::vector<InterfaceRow *> interfaceRows;
+std::vector<Interface *> interfaces;
+InterfaceFooter *interfaceFooter;
 
 class Graph
 {
 	public:
-		Graph(int placement, int width, int height)
+		Graph(GraphType graphType, int placementX, int placementY, int width, int height)
 		{
-			this->placement = placement;
+			this->graphType = graphType;
+			this->placementX = placementX;
+			this->placementY = placementY;
 			this->width = width;
 			this->height = height;
 
-			this->win = newwin(this->height, this->width, this->placement, 0);
+			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
 			wrefresh(this->win);
@@ -431,7 +497,7 @@ class Graph
 			//logfile << "This width: " << this->width << " number of columns: " << this->numCols << "\n";
 			for (int i = 0; i < this->numCols; i++)
 			{
-				this->gDataCols.push_back(new GraphDataColumn());
+				this->gDataCols.push_back(new GraphDataColumn(this->graphType, &interfaces));
 			}
 
 			for (size_t i = 0; i < (this->gDataCols.size() - 1); i++)
@@ -441,9 +507,19 @@ class Graph
 
 			this->numRows = (this->height - 2);
 			//logfile << "This height: " << this->height << " number of rows: " << this->numRows << "\n";
+			logfile << "PlacementX: " << this->placementX << " PlacementY: " << this->placementY << "\n";
 			for (int i = 0; i < this->numRows; i++)
 			{
-				this->gRows.push_back(new GraphRow(1, (this->width - 3), 1, (this->placement + ((i * 1) + 1)), (this->numRows - i - 1), (this->numRows - 1)));
+				this->gRows.push_back(
+						new GraphRow(
+								1,
+								(this->width - 3),
+								(this->placementX + 1),
+								(this->placementY + ((i * 1) + 1)),
+								(this->numRows - i - 1),
+								(this->numRows - 1)
+							)
+						);
 			}
 
 			wrefresh(this->win);
@@ -483,7 +559,10 @@ class Graph
 
 
 	private:
-		int placement;
+		GraphType graphType;
+
+		int placementX;
+		int placementY;
 		int width;
 		int height;
 
@@ -495,11 +574,8 @@ class Graph
 };
 
 
-InterfaceHeader *interfaceHeader;
-std::vector<InterfaceRow *> interfaceRows;
-std::vector<Interface *> interfaces;
-InterfaceFooter *interfaceFooter;
-Graph *graph;
+Graph *graphRecv;
+Graph *graphSend;
 
 Interface *getMatchingInterface(char *ifname)
 {
@@ -747,9 +823,10 @@ int main (int argc, char *argv[])
 
 	int placement = initializeNetInfo();
 
-	graph = new Graph((interfaceRows.size() * 3) + 1, COLS, (LINES - ((interfaceRows.size() * 3) + 1) - 1));
-	//graph = new Graph((interfaceRows.size() * 3) + 1, (int)(COLS/2), 20);
-	graph->Create();
+	graphRecv = new Graph(GT_PKTS_RECV, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 1));
+	graphSend = new Graph(GT_PKTS_SEND, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 1));
+	graphRecv->Create();
+	graphSend->Create();
 
 	int activeIndex = -1;
 
@@ -769,7 +846,8 @@ int main (int argc, char *argv[])
 			//lastDiff = diff;
 			parseNetInfo();
 			updateScreen();
-			graph->Update();
+			graphRecv->Update();
+			graphSend->Update();
 			time(&lastTime);
 			time(&now);
 		}
@@ -944,7 +1022,8 @@ int main (int argc, char *argv[])
 	interfaces.clear();
 	delete interfaceHeader;
 	delete interfaceFooter;
-	delete graph;
+	delete graphRecv;
+	delete graphSend;
 
 	endwin();
 
