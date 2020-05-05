@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stdlib.h>
 #include <unistd.h>
+#include <iomanip>
 
 #include <ncurses.h>
 
@@ -219,9 +220,9 @@ class Interface
 				unsigned long int t_packets)
 		{
 			this->r_bytes = r_bytes;
-			this->t_bytes = r_bytes;
+			this->t_bytes = t_bytes;
 			this->r_packets = r_packets;
-			this->t_packets = r_packets;
+			this->t_packets = t_packets;
 		}
 
 		void Print()
@@ -287,12 +288,24 @@ class GraphDataColumn
 	public:
 		GraphDataColumn()
 		{
-			this->value = (rand() % 11);
+			//this->value = (rand() % 11);
+		}
+
+		void SetNext(GraphDataColumn *next)
+		{
+			this->next = next;
 		}
 
 		void Update()
 		{
-			this->value = (rand() % 11);
+			if (next == NULL)
+			{
+				this->value = (rand() % 11);
+			}
+			else
+			{
+				this->value = this->next->GetValue();
+			}
 		}
 
 		int GetValue()
@@ -302,7 +315,8 @@ class GraphDataColumn
 
 
 	private:
-		int value = 4;
+		int value = 0;
+		GraphDataColumn *next;
 };
 
 
@@ -418,6 +432,11 @@ class Graph
 			for (int i = 0; i < this->numCols; i++)
 			{
 				this->gDataCols.push_back(new GraphDataColumn());
+			}
+
+			for (size_t i = 0; i < (this->gDataCols.size() - 1); i++)
+			{
+				gDataCols[i]->SetNext(gDataCols[i+1]);
 			}
 
 			this->numRows = (this->height - 2);
@@ -552,9 +571,12 @@ bool parseNetInfo()
 		fgets(buf, 200, fp);
 	}
 
+	logfile << "Test print\n";
+
 	while (fgets(buf, 200, fp)) {
 		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
 				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+		logfile << "rbytes: " << r_bytes << " rpkts: " << r_packets << " tbytes: " << t_bytes << " tpkts: " << t_packets << "\n";
 
 		getMatchingInterface(ifname)->Update(r_bytes, t_bytes, r_packets, t_packets);
 	}
@@ -739,16 +761,19 @@ int main (int argc, char *argv[])
 	{
 		time(&now);
 		diff = difftime(now, lastTime);
-		if (diff > lastDiff)
+		//logfile << "Diff: ";
+		//logfile << std::fixed << std::setprecision(8) << diff;
+		//logfile << "\n";
+		if (diff > 1)
 		{
-			lastDiff = diff;
+			//lastDiff = diff;
 			parseNetInfo();
 			updateScreen();
 			graph->Update();
 			time(&lastTime);
 			time(&now);
 		}
-		usleep(100);
+		usleep(500);
 
 		int ch = getch();
 		if (ch != -1)
