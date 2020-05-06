@@ -684,14 +684,14 @@ class Graph
 
 		void Update()
 		{
+			// Update the data
+			for (size_t i = 0; i < this->gDataCols.size(); i++)
+			{
+				gDataCols[i]->Update();
+			}
+
 			if (this->update)
 			{
-				// Update the data
-				for (size_t i = 0; i < this->gDataCols.size(); i++)
-				{
-					gDataCols[i]->Update();
-				}
-
 				// Scan the data columns for the maximum
 				int max = 0;
 				for (size_t i = 0; i < this->gDataCols.size(); i++)
@@ -766,6 +766,8 @@ class Graph
 		void SetUpdate(bool update)
 		{
 			this->update = update;
+
+			this->Update();
 		}
 
 
@@ -1069,12 +1071,12 @@ int main (int argc, char *argv[])
 				{
 					mode = MODE_GRAPH;
 					int graphIndex = modulo(activeGraph, (int)graphs.size());
-					graphs[graphIndex]->SetUpdate(true);
 					if (selectionWindow != NULL)
 					{
 						delete selectionWindow;
 						selectionWindow = NULL;
 					}
+					graphs[graphIndex]->SetUpdate(true);
 				}
 				else
 				{
@@ -1270,12 +1272,12 @@ int main (int argc, char *argv[])
 					{
 						mode = MODE_GRAPH;
 						int graphIndex = modulo(activeGraph, (int)graphs.size());
-						graphs[graphIndex]->SetUpdate(true);
 						if (selectionWindow != NULL)
 						{
 							delete selectionWindow;
 							selectionWindow = NULL;
 						}
+						graphs[graphIndex]->SetUpdate(true);
 					}
 					break;
 				}
