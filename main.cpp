@@ -703,6 +703,9 @@ class Graph
 					}
 				}
 
+				wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+				wrefresh(this->win);
+
 				// Print the graph contents
 				for (size_t i = 0; i < this->gRows.size(); i++)
 				{
