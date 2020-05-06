@@ -1060,7 +1060,6 @@ int main (int argc, char *argv[])
 					mode = MODE_NORMAL;
 					interfaceHeader->activeTab = -1;
 					interfaceHeader->Print();
-					interfaceFooter->Print();
 				}
 				else if (mode == MODE_GRAPH)
 				{
@@ -1085,6 +1084,7 @@ int main (int argc, char *argv[])
 				{
 					break;
 				}
+				interfaceFooter->Print();
 			}
 			switch (ch)
 			{
