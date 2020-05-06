@@ -22,15 +22,17 @@ std::ofstream logfile;
 typedef enum
 {
 	MODE_NORMAL,
-	MODE_SEARCH
+	MODE_SEARCH,
+	MODE_GRAPH
 } Mode;
 
 Mode mode = MODE_NORMAL;
 
-const char modeStrings[2][10] =
+const char modeStrings[3][10] =
 {
 	"Normal",
-	"Sort"
+	"Sort",
+	"Graph"
 };
 
 void getModeString(Mode mode, char *modeString)
@@ -83,29 +85,35 @@ class InterfaceFooter
 		void Print()
 		{
 			wclear(this->win);
+
 			char modeString[10];
 			getModeString(mode, modeString);
 			wprintw(this->win, " Mode: %s ",
 					modeString);
+
 			wattron(this->win, COLOR_PAIR(OPTION_COLOR));
 			if (mode == MODE_SEARCH)
 			{
 				wprintw(this->win, " %s | %s | %s | %s ",
 						"hl to Select", "q Quit", "d Deselect", "enter Select");
 			}
+			else if (mode == MODE_GRAPH)
+			{
+				wprintw(this->win, " %s | %s | %s | %s ",
+						"hl to Select", "q Quit", "c clear", "C clear all");
+			}
 			else
 			{
-				wprintw(this->win, " %s | %s | %s | %s | %s | %s | %s | %s ",
-				"jk to Select", "enter Select", "q Quit", "d Deselect", "c clear graphs", "s Sort", "n Zero", "N Un-Zero");
+				wprintw(this->win, " %s | %s | %s | %s | %s | %s | %s ",
+				"jk enter to Select", "q Quit", "d Deselect", "s Sort", "g Graph", "z Zero", "Z Un-Zero");
 			}
 			wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
+
 			wrefresh(this->win);
 		}
 
 	public:
 		WINDOW *win;
-
-	private:
 };
 
 
@@ -681,8 +689,6 @@ class Graph
 };
 
 
-//Graph *graphRecv;
-//Graph *graphSend;
 std::vector<Graph *> graphs;
 
 Interface *getMatchingInterface(char *ifname)
@@ -786,10 +792,6 @@ int modulo(int a, int b)
 
 void sortInterfaces(InterfaceHeaderContent column)
 {
-// HEADER_RCVD_BYTES,
-// HEADER_RCVD_PKTS,
-// HEADER_SENT_BYTES,
-// HEADER_SENT_PKTS
 	if (column == HEADER_RCVD_BYTES)
 	{
 		//logfile << "Header rcvd bytes\n";
@@ -858,28 +860,12 @@ void sortInterfaces(InterfaceHeaderContent column)
 			}
 		}
 	}
-	// Interface *tmp = NULL;
-	// for (size_t i = 0; i < (interfaces.size() - 1); ++i)
-	// {
-	// 	for (size_t j = (i + 1); j < interfaces.size(); ++j)
-	// 	{
-	// 		if (strcmp(interfaces[i]->name, interfaces[j]->name) < 0)
-	// 		{
-	// 			logfile << interfaces[i]->name << " not greater than " << interfaces[j]->name << "\n";
-	// 			tmp = interfaces[i];
-	// 			interfaces[i] = interfaces[j];
-	// 			interfaces[j] = tmp;
-	// 		}
-	// 		else
-	// 		{
-	// 			logfile << interfaces[i]->name << " greater than " << interfaces[j]->name << "\n";
-	// 		}
-	// 	}
-	// }
+
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
 		interfaces[i]->setInterfaceRow(interfaceRows[i]);
 	}
+
 	updateScreen();
 }
 
@@ -933,8 +919,6 @@ int main (int argc, char *argv[])
 
 	int placement = initializeNetInfo();
 
-	//graphRecv = new Graph(GT_PKTS_RECV, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 1));
-	//graphSend = new Graph(GT_PKTS_SEND, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 1));
 	graphs.push_back(new Graph(GT_PKTS_RECV, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2)));
 	graphs.push_back(new Graph(GT_PKTS_SEND, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2)));
 
@@ -949,6 +933,9 @@ int main (int argc, char *argv[])
 	time(&now);
 	double diff;
 	double lastDiff;
+
+	updateScreen();
+
 	while (true)
 	{
 		time(&now);
@@ -967,8 +954,6 @@ int main (int argc, char *argv[])
 				graphs[i]->Update();
 			}
 
-			//graphRecv->Update();
-			//graphSend->Update();
 			time(&lastTime);
 			time(&now);
 		}
@@ -982,7 +967,7 @@ int main (int argc, char *argv[])
 			}
 			if (ch == (int)'q')
 			{
-				if (mode == MODE_SEARCH)
+				if (mode == MODE_SEARCH || mode == MODE_GRAPH)
 				{
 					mode = MODE_NORMAL;
 					interfaceHeader->activeTab = -1;
@@ -1059,7 +1044,7 @@ int main (int argc, char *argv[])
 					break;
 				}
 
-				case (int)'n':
+				case (int)'z':
 				{
 					if (mode != MODE_NORMAL)
 					{
@@ -1074,7 +1059,7 @@ int main (int argc, char *argv[])
 					break;
 				}
 
-				case (int)'N':
+				case (int)'Z':
 				{
 					if (mode != MODE_NORMAL)
 					{
@@ -1157,18 +1142,39 @@ int main (int argc, char *argv[])
 
 				case (int)'c':
 				{
-					if (mode != MODE_NORMAL)
+					// Only clear the selected graph
+					if (mode != MODE_GRAPH)
 					{
 						break;
 					}
 
-					//graphRecv->Clear();
-					//graphSend->Clear();
+					break;
+				}
+
+				case (int)'C':
+				{
+					if (mode != MODE_GRAPH)
+					{
+						break;
+					}
 
 					for (size_t i = 0; i < graphs.size(); i++)
 					{
 						graphs[i]->Clear();
 					}
+
+					break;
+				}
+
+				case (int)'g':
+				{
+					if (mode != MODE_NORMAL)
+					{
+						break;
+					}
+
+					mode = MODE_GRAPH;
+					interfaceFooter->Print();
 
 					break;
 				}
@@ -1185,8 +1191,6 @@ int main (int argc, char *argv[])
 	interfaces.clear();
 	delete interfaceHeader;
 	delete interfaceFooter;
-	//delete graphRecv;
-	//delete graphSend;
 	graphs.clear();
 
 	endwin();
