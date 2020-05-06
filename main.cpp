@@ -23,16 +23,20 @@ typedef enum
 {
 	MODE_NORMAL,
 	MODE_SEARCH,
-	MODE_GRAPH
+	MODE_GRAPH,
+	MODE_GRAPH_SELECTION
 } Mode;
 
 Mode mode = MODE_NORMAL;
 
-const char modeStrings[3][10] =
+#define modeStringSize 20
+
+const char modeStrings[4][modeStringSize] =
 {
 	"Normal",
 	"Sort",
-	"Graph"
+	"Graph",
+	"Graph Selection"
 };
 
 void getModeString(Mode mode, char *modeString)
@@ -45,15 +49,19 @@ typedef enum
 	GT_BYTES_RECV,
 	GT_PKTS_RECV,
 	GT_BYTES_SEND,
-	GT_PKTS_SEND
+	GT_PKTS_SEND,
+	GT_END
 } GraphType;
 
-const char graphTypeStrings[4][20] =
+#define graphTypeStringSize 20
+
+const char graphTypeStrings[5][graphTypeStringSize] =
 {
 	"Bytes received",
 	"Packets received",
 	"Bytes sent",
-	"Packets sent"
+	"Packets sent",
+	"END"
 };
 
 void getGraphTypeString(GraphType gt, char *graphTypeString)
@@ -86,7 +94,7 @@ class InterfaceFooter
 		{
 			wclear(this->win);
 
-			char modeString[10];
+			char modeString[modeStringSize];
 			getModeString(mode, modeString);
 			wprintw(this->win, " Mode: %s ",
 					modeString);
@@ -94,13 +102,18 @@ class InterfaceFooter
 			wattron(this->win, COLOR_PAIR(OPTION_COLOR));
 			if (mode == MODE_SEARCH)
 			{
-				wprintw(this->win, " %s | %s | %s | %s ",
-						"hl to Select", "q Quit", "d Deselect", "enter Select");
+				wprintw(this->win, " %s | %s | %s ",
+						"hl enter to Select", "q Quit", "d Deselect");
 			}
 			else if (mode == MODE_GRAPH)
 			{
 				wprintw(this->win, " %s | %s | %s | %s ",
-						"hl to Select", "q Quit", "c clear", "C clear all");
+						"hl enter to Select", "q Quit", "c clear", "C clear all");
+			}
+			else if (mode == MODE_GRAPH_SELECTION)
+			{
+				wprintw(this->win, " %s | %s ",
+						"jk enter to Select", "q Quit");
 			}
 			else
 			{
@@ -253,7 +266,6 @@ class Interface
 			this->t_bytesLast = this->t_bytes;
 			this->t_bytes = t_bytes;
 			this->r_packetsLast = this->r_packets;
-			//logfile << "rpkts: " << r_packets << " old rpkts: " << this->r_packets << " diff: " << this->r_packetsLast << "\n";
 			this->r_packets = r_packets;
 			this->t_packetsLast = this->t_packets;
 			this->t_packets = t_packets;
@@ -263,14 +275,18 @@ class Interface
 		{
 			wclear(this->interfaceRow->win);
 			wborder(this->interfaceRow->win, 0, 0, 0, 0, 0, 0, 0, 0);
+
 			if (this->active) {
 				wattron(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
+
 			mvwprintw(this->interfaceRow->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
 					longest, this->name, (this->r_bytes - this->r_bytesZeroed), (this->r_packets - this->r_packetsZeroed), (this->t_bytes - this->t_bytesZeroed), (this->t_packets - this->t_packetsZeroed));
+
 			if (this->active) {
 				wattroff(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
+
 			wrefresh(this->interfaceRow->win);
 		}
 
@@ -321,13 +337,55 @@ class Interface
 };
 
 
+class SelectionWindow
+{
+	public:
+		SelectionWindow(GraphType graphType, int placementX, int placementY, int width, int height)
+		{
+			this->graphType = graphType;
+			this->placementX = placementX;
+			this->placementY = placementY;
+			this->width = width;
+			this->height = height;
+
+			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
+			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+			wrefresh(this->win);
+			this->Update();
+		}
+
+		void Update()
+		{
+			char graphTypeString[graphTypeStringSize];
+			for (int i = 0; i < GT_END; i++)
+			{
+				getGraphTypeString((GraphType)i, graphTypeString);
+				mvwprintw(this->win, i + 1, 1, "%s", graphTypeString);
+			}
+			
+
+			wrefresh(this->win);
+		}
+
+	private:
+		WINDOW *win;
+
+		GraphType graphType;
+
+		int placementX;
+		int placementY;
+		int width;
+		int height;
+};
+
+
 class GraphDataColumn
 {
 	public:
 		GraphDataColumn(GraphType graphType, std::vector<Interface *> *interfaces, Interface *interface)
 		{
 			this->graphType = graphType;
-			//this->value = (rand() % 11);
 			this->interfaces = interfaces;
 			this->interface = interface;
 		}
@@ -432,8 +490,6 @@ class GraphRow
 			this->height = height;
 			this->width = width;
 			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
-			// 113 wide == this->width
-			//wprintw(this->win, "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfas123");
 
 			wrefresh(this->win);
 		}
@@ -450,7 +506,6 @@ class GraphRow
 			{
 				float valuePercent = (float)gDataCols->at(i)->GetValue() / (float)max;
 				float split = (float)1 / (float)this->max;
-				//logfile << "My value: " << this->value << " my max: " << this->max << " my perc: " << currPos << " its value: " << gDataCols->at(i)->GetValue() << " its max: " << max << " its perc: " << valuePercent << " split is: " << split << "\n";
 				if (valuePercent >= currPos && valuePercent < (currPos + split))
 				{
 					mvwprintw(this->win, 0, i, "_");
@@ -510,9 +565,13 @@ class GraphTitle
 		{
 			wclear(this->win);
 
-			char graphTypeString[20];
+			char graphTypeString[graphTypeStringSize];
 			getGraphTypeString(this->graphType, graphTypeString);
 
+			if (this->active)
+			{
+				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+			}
 			if (this->interface == NULL)
 			{
 				wprintw(this->win, "%s", graphTypeString);
@@ -520,6 +579,10 @@ class GraphTitle
 			else
 			{
 				wprintw(this->win, "%s through %s", graphTypeString, interface->name);
+			}
+			if (this->active)
+			{
+				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
 			}
 
 			wrefresh(this->win);
@@ -539,6 +602,13 @@ class GraphTitle
 			this->Update();
 		}
 
+		void setActive(bool active)
+		{
+			this->active = active;
+
+			this->Update();
+		}
+
 	private:
 		WINDOW *win;
 
@@ -549,6 +619,8 @@ class GraphTitle
 
 		GraphType graphType;
 		Interface *interface;
+
+		bool active = false;
 };
 
 
@@ -596,15 +668,15 @@ class Graph
 			for (int i = 0; i < this->numRows; i++)
 			{
 				this->gRows.push_back(
-						new GraphRow(
-								1,
-								(this->width - 3),
-								(this->placementX + 1),
-								(this->placementY + 1 + ((i * 1) + 1)),
-								(this->numRows - i - 1),
-								(this->numRows - 1)
-							)
-						);
+					new GraphRow(
+						1,
+						(this->width - 3),
+						(this->placementX + 1),
+						(this->placementY + 1 + ((i * 1) + 1)),
+						(this->numRows - i - 1),
+						(this->numRows - 1)
+					)
+				);
 			}
 
 			wrefresh(this->win);
@@ -612,30 +684,33 @@ class Graph
 
 		void Update()
 		{
-			// Update the data
-			for (size_t i = 0; i < this->gDataCols.size(); i++)
+			if (this->update)
 			{
-				gDataCols[i]->Update();
-			}
-
-			// Scan the data columns for the maximum
-			int max = 0;
-			for (size_t i = 0; i < this->gDataCols.size(); i++)
-			{
-				int tempValue = gDataCols[i]->GetValue();
-				if (tempValue > max)
+				// Update the data
+				for (size_t i = 0; i < this->gDataCols.size(); i++)
 				{
-					max = tempValue;
+					gDataCols[i]->Update();
 				}
-			}
 
-			// Print the graph contents
-			for (size_t i = 0; i < this->gRows.size(); i++)
-			{
-				gRows[i]->Update(&(this->gDataCols), max);
-			}
+				// Scan the data columns for the maximum
+				int max = 0;
+				for (size_t i = 0; i < this->gDataCols.size(); i++)
+				{
+					int tempValue = gDataCols[i]->GetValue();
+					if (tempValue > max)
+					{
+						max = tempValue;
+					}
+				}
 
-			wrefresh(this->win);
+				// Print the graph contents
+				for (size_t i = 0; i < this->gRows.size(); i++)
+				{
+					gRows[i]->Update(&(this->gDataCols), max);
+				}
+
+				wrefresh(this->win);
+			}
 		}
 
 		void Clear()
@@ -668,6 +743,31 @@ class Graph
 			this->Update();
 		}
 
+		void setActive(bool active)
+		{
+			graphTitle->setActive(active);
+		}
+
+		GraphType GetGraphType()
+		{
+			return this->graphType;
+		}
+
+		int GetPlacementX()
+		{
+			return this->placementX;
+		}
+
+		int GetPlacementY()
+		{
+			return this->placementY;
+		}
+
+		void SetUpdate(bool update)
+		{
+			this->update = update;
+		}
+
 
 	private:
 		WINDOW *win;
@@ -679,6 +779,7 @@ class Graph
 
 		int numRows;
 		int numCols;
+		bool update = true;
 
 		Interface *interface = NULL;
 
@@ -898,24 +999,9 @@ int main (int argc, char *argv[])
 	noecho();
 	keypad(stdscr, TRUE);
 
-	//WINDOW *win1 = newwin(3, COLS, 0, 0);
-	//WINDOW *win2 = newwin(3, COLS, 3, 0);
-	//WINDOW *win3 = newwin(3, COLS, 6, 0);
-	//wborder(win1, 0, 0, 0, 0, 0, 0, 0, 0);
-	//wborder(win2, 0, 0, 0, 0, 0, 0, 0, 0);
-	//wborder(win3, 0, 0, 0, 0, 0, 0, 0, 0);
-	//wrefresh(win1);
-	//wrefresh(win2);
-	//wrefresh(win3);
-	//mvwprintw(win1, 1, 1, "asdf");
-	//mvwprintw(win2, 1, 1, "qwer");
-	//mvwprintw(win3, 1, 1, "uiop");
-	//wrefresh(win1);
-	//wrefresh(win2);
-	//wrefresh(win3);
-
 	interfaceHeader = new InterfaceHeader();
 	interfaceFooter = new InterfaceFooter();
+	SelectionWindow *selectionWindow = NULL;
 
 	int placement = initializeNetInfo();
 
@@ -928,6 +1014,7 @@ int main (int argc, char *argv[])
 	}
 
 	int activeIndex = -1;
+	int activeGraph = -1;
 
 	time(&lastTime);
 	time(&now);
@@ -940,12 +1027,8 @@ int main (int argc, char *argv[])
 	{
 		time(&now);
 		diff = difftime(now, lastTime);
-		//logfile << "Diff: ";
-		//logfile << std::fixed << std::setprecision(8) << diff;
-		//logfile << "\n";
 		if (diff > 1)
 		{
-			//lastDiff = diff;
 			parseNetInfo();
 			updateScreen();
 
@@ -967,12 +1050,31 @@ int main (int argc, char *argv[])
 			}
 			if (ch == (int)'q')
 			{
-				if (mode == MODE_SEARCH || mode == MODE_GRAPH)
+				if (mode == MODE_SEARCH)
 				{
 					mode = MODE_NORMAL;
 					interfaceHeader->activeTab = -1;
 					interfaceHeader->Print();
 					interfaceFooter->Print();
+				}
+				else if (mode == MODE_GRAPH)
+				{
+					mode = MODE_NORMAL;
+					for (size_t i = 0; i < graphs.size(); i++)
+					{
+						graphs[i]->setActive(false);
+					}
+				}
+				else if (mode == MODE_GRAPH_SELECTION)
+				{
+					mode = MODE_GRAPH;
+					int graphIndex = modulo(activeGraph, (int)graphs.size());
+					graphs[graphIndex]->SetUpdate(true);
+					if (selectionWindow != NULL)
+					{
+						delete selectionWindow;
+						selectionWindow = NULL;
+					}
 				}
 				else
 				{
@@ -984,44 +1086,48 @@ int main (int argc, char *argv[])
 				case KEY_DOWN:
 				case (int)'j':
 				{
-					if (mode != MODE_NORMAL)
+					if (mode == MODE_NORMAL)
 					{
-						break;
-					}
-
-					if (activeIndex != -1)
-					{
-						interfaces[activeIndex]->SetActive(false);
+						if (activeIndex != -1)
+						{
+							interfaces[activeIndex]->SetActive(false);
+							interfaces[activeIndex]->Print();
+						}
+						activeIndex += 1;
+						activeIndex = modulo(activeIndex, (int)interfaces.size());
+						interfaces[activeIndex]->SetActive(true);
 						interfaces[activeIndex]->Print();
 					}
-					activeIndex += 1;
-					activeIndex = modulo(activeIndex, (int)interfaces.size());
-					interfaces[activeIndex]->SetActive(true);
-					interfaces[activeIndex]->Print();
+					else if (mode == MODE_GRAPH_SELECTION)
+					{
+					}
+
 					break;
 				}
 
 				case KEY_UP:
 				case (int)'k':
 				{
-					if (mode != MODE_NORMAL)
+					if (mode == MODE_NORMAL)
 					{
-						break;
-					}
-
-					if (activeIndex != -1)
-					{
-						interfaces[activeIndex]->SetActive(false);
+						if (activeIndex != -1)
+						{
+							interfaces[activeIndex]->SetActive(false);
+							interfaces[activeIndex]->Print();
+						}
+						else
+						{
+							activeIndex = 0;
+						}
+						activeIndex -= 1;
+						activeIndex = modulo(activeIndex, (int)interfaces.size());
+						interfaces[activeIndex]->SetActive(true);
 						interfaces[activeIndex]->Print();
 					}
-					else
+					else if (mode == MODE_GRAPH_SELECTION)
 					{
-						activeIndex = 0;
 					}
-					activeIndex -= 1;
-					activeIndex = modulo(activeIndex, (int)interfaces.size());
-					interfaces[activeIndex]->SetActive(true);
-					interfaces[activeIndex]->Print();
+
 					break;
 				}
 
@@ -1089,32 +1195,48 @@ int main (int argc, char *argv[])
 				case KEY_LEFT:
 				case (int)'h':
 				{
-					if (mode != MODE_SEARCH)
+					if (mode == MODE_SEARCH)
 					{
-						break;
+						if (interfaceHeader->activeTab == -1)
+						{
+							interfaceHeader->activeTab = 0;
+						}
+						interfaceHeader->activeTab -= 1;
+						interfaceHeader->activeTab = modulo(interfaceHeader->activeTab, interfaceHeader->GetTabCount());
+						interfaceHeader->Print();
 					}
-
-					if (interfaceHeader->activeTab == -1)
+					else if (mode == MODE_GRAPH)
 					{
-						interfaceHeader->activeTab = 0;
+						activeGraph -= 1;
+						int graphIndex = modulo(activeGraph, (int)graphs.size());
+						for (size_t i = 0; i < graphs.size(); i++)
+						{
+							graphs[i]->setActive(false);
+						}
+						graphs[graphIndex]->setActive(true);
 					}
-					interfaceHeader->activeTab -= 1;
-					interfaceHeader->activeTab = modulo(interfaceHeader->activeTab, interfaceHeader->GetTabCount());
-					interfaceHeader->Print();
 					break;
 				}
 
 				case KEY_RIGHT:
 				case (int)'l':
 				{
-					if (mode != MODE_SEARCH)
+					if (mode == MODE_SEARCH)
 					{
-						break;
+						interfaceHeader->activeTab += 1;
+						interfaceHeader->activeTab = modulo(interfaceHeader->activeTab, interfaceHeader->GetTabCount());
+						interfaceHeader->Print();
 					}
-
-					interfaceHeader->activeTab += 1;
-					interfaceHeader->activeTab = modulo(interfaceHeader->activeTab, interfaceHeader->GetTabCount());
-					interfaceHeader->Print();
+					else if (mode == MODE_GRAPH)
+					{
+						activeGraph += 1;
+						int graphIndex = modulo(activeGraph, (int)graphs.size());
+						for (size_t i = 0; i < graphs.size(); i++)
+						{
+							graphs[i]->setActive(false);
+						}
+						graphs[graphIndex]->setActive(true);
+					}
 					break;
 				}
 
@@ -1135,6 +1257,24 @@ int main (int argc, char *argv[])
 						for (size_t i = 0; i < graphs.size(); i++)
 						{
 							graphs[i]->UpdateGraphInterface(interfaces[activeIndex]);
+						}
+					}
+					else if (mode == MODE_GRAPH)
+					{
+						mode = MODE_GRAPH_SELECTION;
+						int graphIndex = modulo(activeGraph, (int)graphs.size());
+						selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1, 30, 20);
+						graphs[graphIndex]->SetUpdate(false);
+					}
+					else if (mode == MODE_GRAPH_SELECTION)
+					{
+						mode = MODE_GRAPH;
+						int graphIndex = modulo(activeGraph, (int)graphs.size());
+						graphs[graphIndex]->SetUpdate(true);
+						if (selectionWindow != NULL)
+						{
+							delete selectionWindow;
+							selectionWindow = NULL;
 						}
 					}
 					break;
