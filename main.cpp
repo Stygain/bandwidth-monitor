@@ -361,12 +361,25 @@ class SelectionWindow
 			for (int i = 0; i < GT_END; i++)
 			{
 				getGraphTypeString((GraphType)i, graphTypeString);
+				if (i == activeItem)
+				{
+					wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				}
 				mvwprintw(this->win, i + 1, 1, "%s", graphTypeString);
+				if (i == activeItem)
+				{
+					wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+				}
 			}
-			
 
 			wrefresh(this->win);
 		}
+
+
+	public:
+		int activeItem = -1;
+		int max = (int)GT_END;
+
 
 	private:
 		WINDOW *win;
@@ -1105,6 +1118,12 @@ int main (int argc, char *argv[])
 					}
 					else if (mode == MODE_GRAPH_SELECTION)
 					{
+						if (selectionWindow != NULL)
+						{
+							selectionWindow->activeItem++;
+							selectionWindow->activeItem = modulo(selectionWindow->activeItem, selectionWindow->max);
+							selectionWindow->Update();
+						}
 					}
 
 					break;
@@ -1131,6 +1150,12 @@ int main (int argc, char *argv[])
 					}
 					else if (mode == MODE_GRAPH_SELECTION)
 					{
+						if (selectionWindow != NULL)
+						{
+							selectionWindow->activeItem--;
+							selectionWindow->activeItem = modulo(selectionWindow->activeItem, selectionWindow->max);
+							selectionWindow->Update();
+						}
 					}
 
 					break;
