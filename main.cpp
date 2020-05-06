@@ -375,6 +375,11 @@ class SelectionWindow
 			wrefresh(this->win);
 		}
 
+		GraphType GetActiveItemGraphType()
+		{
+			return (GraphType)activeItem;
+		}
+
 
 	public:
 		int activeItem = -1;
@@ -435,6 +440,29 @@ class GraphDataColumn
 					logfile << "Pkts Recv Diff: " << pktsRecvDiff << "\n";
 					this->value = pktsRecvDiff;
 				}
+				else if (graphType == GT_BYTES_RECV)
+				{
+					int bytesRecvDiff = 0;
+					if (this->interface != NULL)
+					{
+						if (this->interface->r_bytesLast != 0)
+						{
+							bytesRecvDiff += this->interface->r_bytes - this->interface->r_bytesLast;
+						}
+					}
+					else
+					{
+						for (size_t i = 0; i < this->interfaces->size(); i++)
+						{
+							if (this->interfaces->at(i)->r_bytesLast != 0)
+							{
+								bytesRecvDiff += this->interfaces->at(i)->r_bytes - this->interfaces->at(i)->r_bytesLast;
+							}
+						}
+					}
+					logfile << "Bytes Recv Diff: " << bytesRecvDiff << "\n";
+					this->value = bytesRecvDiff;
+				}
 				else if (graphType == GT_PKTS_SEND)
 				{
 					int pktsSendDiff = 0;
@@ -457,6 +485,29 @@ class GraphDataColumn
 					}
 					logfile << "Pkts Send Diff: " << pktsSendDiff << "\n";
 					this->value = pktsSendDiff;
+				}
+				else if (graphType == GT_BYTES_SEND)
+				{
+					int bytesSendDiff = 0;
+					if (this->interface != NULL)
+					{
+						if (this->interface->t_bytesLast != 0)
+						{
+							bytesSendDiff += this->interface->t_bytes - this->interface->t_bytesLast;
+						}
+					}
+					else
+					{
+						for (size_t i = 0; i < this->interfaces->size(); i++)
+						{
+							if (this->interfaces->at(i)->t_bytesLast != 0)
+							{
+								bytesSendDiff += this->interfaces->at(i)->t_bytes - this->interfaces->at(i)->t_bytesLast;
+							}
+						}
+					}
+					logfile << "Bytes Send Diff: " << bytesSendDiff << "\n";
+					this->value = bytesSendDiff;
 				}
 			}
 			else
@@ -777,6 +828,16 @@ class Graph
 		int GetPlacementY()
 		{
 			return this->placementY;
+		}
+
+		int GetWidth()
+		{
+			return this->width;
+		}
+
+		int GetHeight()
+		{
+			return this->height;
 		}
 
 		void SetUpdate(bool update)
@@ -1300,12 +1361,29 @@ int main (int argc, char *argv[])
 					{
 						mode = MODE_GRAPH;
 						int graphIndex = modulo(activeGraph, (int)graphs.size());
+
+						// Get the new graph type
+						GraphType newType = selectionWindow->GetActiveItemGraphType();
+
 						if (selectionWindow != NULL)
 						{
 							delete selectionWindow;
 							selectionWindow = NULL;
 						}
 						graphs[graphIndex]->SetUpdate(true);
+
+						// Get the old graph placement and sizing
+						int oldPlacementX = graphs[graphIndex]->GetPlacementX();
+						int oldPlacementY = graphs[graphIndex]->GetPlacementY();
+						int oldWidth = graphs[graphIndex]->GetWidth();
+						int oldHeight = graphs[graphIndex]->GetHeight();
+
+						// Delete the graph
+						delete graphs[graphIndex];
+
+						// Replace the graph
+						graphs[graphIndex] = new Graph(newType, oldPlacementX, oldPlacementY, oldWidth, oldHeight);
+						graphs[graphIndex]->Create();
 					}
 					break;
 				}
