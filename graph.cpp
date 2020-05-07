@@ -125,8 +125,6 @@ void GraphDataColumn::UpdateGraphInterface(Interface *interface)
 void GraphDataColumn::Clear()
 {
 	this->value = 0;
-
-	this->Update();
 }
 
 int GraphDataColumn::GetValue()
@@ -160,7 +158,7 @@ void GraphRow::Update(std::vector<GraphDataColumn *> *gDataCols, int max)
 	{
 		float valuePercent = (float)gDataCols->at(i)->GetValue() / (float)max;
 		float split = (float)1 / (float)this->max;
-		if (valuePercent >= currPos && valuePercent < (currPos + split))
+		if (valuePercent > currPos && valuePercent <= (currPos + split))
 		{
 			mvwprintw(this->win, 0, i, "_");
 		}
@@ -376,6 +374,8 @@ void Graph::Clear()
 	{
 		gRows[i]->Update(&(this->gDataCols), 2);
 	}
+
+	graphMaxItem->UpdateMaxItem(0);
 
 	wrefresh(this->win);
 }
