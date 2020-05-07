@@ -2,7 +2,6 @@
 #include <string.h>
 #include <vector>
 #include <time.h>
-#include <fstream>
 // #include <stdlib.h>
 #include <unistd.h>
 // #include <iomanip>
@@ -12,9 +11,9 @@
 #include "graph.h"
 #include "interface.h"
 #include "utils.h"
+#include "logger.h"
 
 
-std::ofstream logfile;
 Mode mode = MODE_NORMAL;
 int longest = 14;
 
@@ -84,6 +83,8 @@ InterfaceHeader *interfaceHeader;
 std::vector<InterfaceRow *> interfaceRows;
 std::vector<Interface *> interfaces;
 InterfaceFooter *interfaceFooter;
+
+extern Logger *logger;
 
 
 
@@ -159,12 +160,9 @@ bool parseNetInfo()
 		fgets(buf, 200, fp);
 	}
 
-	logfile << "Test print\n";
-
 	while (fgets(buf, 200, fp)) {
 		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
 				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
-		logfile << "rbytes: " << r_bytes << " rpkts: " << r_packets << " tbytes: " << t_bytes << " tpkts: " << t_packets << "\n";
 
 		getMatchingInterface(ifname)->Update(r_bytes, t_bytes, r_packets, t_packets);
 	}
@@ -192,7 +190,6 @@ void sortInterfaces(InterfaceHeaderContent column)
 {
 	if (column == HEADER_RCVD_BYTES)
 	{
-		//logfile << "Header rcvd bytes\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -209,7 +206,6 @@ void sortInterfaces(InterfaceHeaderContent column)
 	}
 	else if (column == HEADER_RCVD_PKTS)
 	{
-		//logfile << "Header rcvd pkts\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -226,7 +222,6 @@ void sortInterfaces(InterfaceHeaderContent column)
 	}
 	if (column == HEADER_SENT_BYTES)
 	{
-		//logfile << "Header sent bytes\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -243,7 +238,6 @@ void sortInterfaces(InterfaceHeaderContent column)
 	}
 	else if (column == HEADER_SENT_PKTS)
 	{
-		//logfile << "Header sent pkts\n";
 		Interface *tmp = NULL;
 		for (size_t i = 0; i < (interfaces.size() - 1); ++i)
 		{
@@ -282,8 +276,6 @@ int main (int argc, char *argv[])
 		exit(1);
 	}
 
-	logfile.open("logs");
-
 	start_color();
 	init_pair(HEADER_COLOR, COLOR_GREEN, COLOR_BLACK);
 	init_pair(ACTIVE_COLOR, COLOR_WHITE, COLOR_BLUE);
@@ -295,6 +287,9 @@ int main (int argc, char *argv[])
 	nodelay(stdscr, TRUE);
 	noecho();
 	keypad(stdscr, TRUE);
+
+	logger->StartLogfile();
+	logger->Log("Test log message\n");
 
 	interfaceHeader = new InterfaceHeader(longest);
 	interfaceFooter = new InterfaceFooter();
@@ -693,10 +688,9 @@ int main (int argc, char *argv[])
 	delete interfaceHeader;
 	delete interfaceFooter;
 	graphs.clear();
+	delete logger;
 
 	endwin();
-
-	logfile.close();
 
 	return 0;
 }

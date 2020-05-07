@@ -36,7 +36,6 @@ void GraphDataColumn::Update()
 					}
 				}
 			}
-			//logfile << "Pkts Recv Diff: " << pktsRecvDiff << "\n";
 			this->value = pktsRecvDiff;
 		}
 		else if (graphType == GT_BYTES_RECV)
@@ -59,7 +58,6 @@ void GraphDataColumn::Update()
 					}
 				}
 			}
-			//logfile << "Bytes Recv Diff: " << bytesRecvDiff << "\n";
 			this->value = bytesRecvDiff;
 		}
 		else if (graphType == GT_PKTS_SEND)
@@ -82,7 +80,6 @@ void GraphDataColumn::Update()
 					}
 				}
 			}
-			//logfile << "Pkts Send Diff: " << pktsSendDiff << "\n";
 			this->value = pktsSendDiff;
 		}
 		else if (graphType == GT_BYTES_SEND)
@@ -105,7 +102,6 @@ void GraphDataColumn::Update()
 					}
 				}
 			}
-			//logfile << "Bytes Send Diff: " << bytesSendDiff << "\n";
 			this->value = bytesSendDiff;
 		}
 	}
@@ -297,7 +293,6 @@ Graph::~Graph()
 void Graph::Create()
 {
 	this->numCols = (this->width - 3);
-	//logfile << "This width: " << this->width << " number of columns: " << this->numCols << "\n";
 	for (int i = 0; i < this->numCols; i++)
 	{
 		this->gDataCols.push_back(new GraphDataColumn(this->graphType, this->interfaces, this->interface));
@@ -309,7 +304,6 @@ void Graph::Create()
 	}
 
 	this->numRows = (this->height - 2);
-	//logfile << "This height: " << this->height << " number of rows: " << this->numRows << "\n";
 	for (int i = 0; i < this->numRows; i++)
 	{
 		this->gRows.push_back(
