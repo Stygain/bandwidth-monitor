@@ -53,7 +53,7 @@ typedef enum
 	GT_END
 } GraphType;
 
-#define graphTypeStringSize 20
+#define graphTypeStringSize 17
 
 const char graphTypeStrings[5][graphTypeStringSize] =
 {
@@ -340,13 +340,15 @@ class Interface
 class SelectionWindow
 {
 	public:
-		SelectionWindow(GraphType graphType, int placementX, int placementY, int width, int height)
+		SelectionWindow(GraphType graphType, int placementX, int placementY)
 		{
 			this->graphType = graphType;
 			this->placementX = placementX;
 			this->placementY = placementY;
-			this->width = width;
-			this->height = height;
+			//this->width = width;
+			//this->height = height;
+			this->width = graphTypeStringSize + 1;
+			this->height = (int)GT_END + 2;
 
 			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -1137,6 +1139,7 @@ int main (int argc, char *argv[])
 				}
 				else if (mode == MODE_GRAPH)
 				{
+					activeGraph = -1;
 					mode = MODE_NORMAL;
 					for (size_t i = 0; i < graphs.size(); i++)
 					{
@@ -1213,7 +1216,10 @@ int main (int argc, char *argv[])
 					{
 						if (selectionWindow != NULL)
 						{
-							selectionWindow->activeItem--;
+							if (selectionWindow->activeItem != -1)
+							{
+								selectionWindow->activeItem--;
+							}
 							selectionWindow->activeItem = modulo(selectionWindow->activeItem, selectionWindow->max);
 							selectionWindow->Update();
 						}
@@ -1298,8 +1304,12 @@ int main (int argc, char *argv[])
 					}
 					else if (mode == MODE_GRAPH)
 					{
-						activeGraph -= 1;
+						if (activeGraph != -1)
+						{
+							activeGraph -= 1;
+						}
 						int graphIndex = modulo(activeGraph, (int)graphs.size());
+						activeGraph = graphIndex;
 						for (size_t i = 0; i < graphs.size(); i++)
 						{
 							graphs[i]->setActive(false);
@@ -1322,6 +1332,7 @@ int main (int argc, char *argv[])
 					{
 						activeGraph += 1;
 						int graphIndex = modulo(activeGraph, (int)graphs.size());
+						activeGraph = graphIndex;
 						for (size_t i = 0; i < graphs.size(); i++)
 						{
 							graphs[i]->setActive(false);
@@ -1352,10 +1363,13 @@ int main (int argc, char *argv[])
 					}
 					else if (mode == MODE_GRAPH)
 					{
-						mode = MODE_GRAPH_SELECTION;
-						int graphIndex = modulo(activeGraph, (int)graphs.size());
-						selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1, 30, 20);
-						graphs[graphIndex]->SetUpdate(false);
+						if (activeGraph != -1)
+						{
+							mode = MODE_GRAPH_SELECTION;
+							int graphIndex = modulo(activeGraph, (int)graphs.size());
+							selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1);
+							graphs[graphIndex]->SetUpdate(false);
+						}
 					}
 					else if (mode == MODE_GRAPH_SELECTION)
 					{
