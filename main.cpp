@@ -340,15 +340,13 @@ class Interface
 class SelectionWindow
 {
 	public:
-		SelectionWindow(GraphType graphType, int placementX, int placementY)
+		SelectionWindow(GraphType graphType, int placementX, int placementY, int width, int height)
 		{
 			this->graphType = graphType;
 			this->placementX = placementX;
 			this->placementY = placementY;
-			//this->width = width;
-			//this->height = height;
-			this->width = graphTypeStringSize + 1;
-			this->height = (int)GT_END + 2;
+			this->width = width;
+			this->height = height;
 
 			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -1367,7 +1365,7 @@ int main (int argc, char *argv[])
 						{
 							mode = MODE_GRAPH_SELECTION;
 							int graphIndex = modulo(activeGraph, (int)graphs.size());
-							selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1);
+							selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1, graphTypeStringSize + 1, (int)GT_END + 2);
 							graphs[graphIndex]->SetUpdate(false);
 						}
 					}
