@@ -688,6 +688,49 @@ class GraphTitle
 };
 
 
+class GraphMaxItem
+{
+	public:
+		GraphMaxItem(int placementX, int placementY, int width, int height)
+		{
+			this->placementX = placementX;
+			this->placementY = placementY;
+			this->width = width;
+			this->height = height;
+
+			this->win = newwin(this->height, this->width, this->placementY + 1, this->placementX);
+
+			wrefresh(this->win);
+		}
+
+		void Update()
+		{
+			wclear(this->win);
+
+			wprintw(this->win, "%d", this->max);
+
+			wrefresh(this->win);
+		}
+
+		void UpdateMaxItem(int max)
+		{
+			this->max = max;
+
+			this->Update();
+		}
+
+	private:
+		WINDOW *win;
+
+		int placementX;
+		int placementY;
+		int width;
+		int height;
+
+		int max = 0;
+};
+
+
 class Graph
 {
 	public:
@@ -700,6 +743,7 @@ class Graph
 			this->height = height;
 
 			graphTitle = new GraphTitle(this->graphType, this->placementX + 1, this->placementY, this->width, 1, NULL);
+			graphMaxItem = new GraphMaxItem(this->placementX + 2, this->placementY + 1, 5, 1);
 
 			this->win = newwin(this->height, this->width, this->placementY + 1, this->placementX);
 			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -711,6 +755,8 @@ class Graph
 		{
 			gDataCols.clear();
 			gRows.clear();
+			delete graphTitle;
+			delete graphMaxItem;
 		}
 
 		void Create()
@@ -775,6 +821,8 @@ class Graph
 				{
 					gRows[i]->Update(&(this->gDataCols), max);
 				}
+
+				graphMaxItem->UpdateMaxItem(max);
 
 				wrefresh(this->win);
 			}
@@ -864,6 +912,7 @@ class Graph
 
 		GraphType graphType;
 		GraphTitle *graphTitle;
+		GraphMaxItem *graphMaxItem;
 		std::vector<GraphRow *> gRows;
 		std::vector<GraphDataColumn *> gDataCols;
 };
