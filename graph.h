@@ -135,8 +135,6 @@ class Graph
 
 		int GetHeight();
 
-		void SetUpdate(bool update);
-
 		Interface * GetInterface();
 
 
@@ -150,7 +148,6 @@ class Graph
 
 		int numRows;
 		int numCols;
-		bool update = true;
 
 		std::vector<Interface *> *interfaces;
 		Interface *interface = NULL;

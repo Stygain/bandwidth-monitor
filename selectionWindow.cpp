@@ -9,14 +9,15 @@ SelectionWindow::SelectionWindow(GraphType graphType, int placementX, int placem
 	this->height = height;
 
 	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
-	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
-	wrefresh(this->win);
 	this->Update();
 }
 
 void SelectionWindow::Update()
 {
+	werase(this->win);
+	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+
 	char graphTypeString[graphTypeStringSize];
 	for (int i = 0; i < GT_END; i++)
 	{

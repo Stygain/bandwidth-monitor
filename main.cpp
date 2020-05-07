@@ -281,6 +281,10 @@ int main (int argc, char *argv[])
 			{
 				interfaceDetailWindow->Update();
 			}
+			if (selectionWindow != NULL)
+			{
+				selectionWindow->Update();
+			}
 
 			time(&lastTime);
 			time(&now);
@@ -328,7 +332,7 @@ int main (int argc, char *argv[])
 						delete selectionWindow;
 						selectionWindow = NULL;
 					}
-					graphs[graphIndex]->SetUpdate(true);
+					//graphs[graphIndex]->Update();
 				}
 				else
 				{
@@ -559,7 +563,6 @@ int main (int argc, char *argv[])
 
 							int graphIndex = modulo(activeGraph, (int)graphs.size());
 							selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1, graphTypeStringSize + 1, (int)GT_END + 2);
-							graphs[graphIndex]->SetUpdate(false);
 						}
 					}
 					else if (mode == MODE_GRAPH_SELECTION)
@@ -578,7 +581,6 @@ int main (int argc, char *argv[])
 							delete selectionWindow;
 							selectionWindow = NULL;
 						}
-						graphs[graphIndex]->SetUpdate(true);
 
 						// Get the old graph placement and sizing
 						int oldPlacementX = graphs[graphIndex]->GetPlacementX();

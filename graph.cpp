@@ -329,32 +329,29 @@ void Graph::Update()
 		gDataCols[i]->Update();
 	}
 
-	if (this->update)
+	// Scan the data columns for the maximum
+	int max = 0;
+	for (size_t i = 0; i < this->gDataCols.size(); i++)
 	{
-		// Scan the data columns for the maximum
-		int max = 0;
-		for (size_t i = 0; i < this->gDataCols.size(); i++)
+		int tempValue = gDataCols[i]->GetValue();
+		if (tempValue > max)
 		{
-			int tempValue = gDataCols[i]->GetValue();
-			if (tempValue > max)
-			{
-				max = tempValue;
-			}
+			max = tempValue;
 		}
-
-		wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
-		wrefresh(this->win);
-
-		// Print the graph contents
-		for (size_t i = 0; i < this->gRows.size(); i++)
-		{
-			gRows[i]->Update(&(this->gDataCols), max);
-		}
-
-		graphMaxItem->UpdateMaxItem(max);
-
-		wrefresh(this->win);
 	}
+
+	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+	wrefresh(this->win);
+
+	// Print the graph contents
+	for (size_t i = 0; i < this->gRows.size(); i++)
+	{
+		gRows[i]->Update(&(this->gDataCols), max);
+	}
+
+	graphMaxItem->UpdateMaxItem(max);
+
+	wrefresh(this->win);
 }
 
 void Graph::Clear()
@@ -417,13 +414,6 @@ int Graph::GetWidth()
 int Graph::GetHeight()
 {
 	return this->height;
-}
-
-void Graph::SetUpdate(bool update)
-{
-	this->update = update;
-
-	this->Update();
 }
 
 Interface * Graph::GetInterface()
