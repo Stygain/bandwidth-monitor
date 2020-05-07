@@ -92,7 +92,7 @@ class InterfaceFooter
 
 		void Print()
 		{
-			wclear(this->win);
+			werase(this->win);
 
 			char modeString[modeStringSize];
 			getModeString(mode, modeString);
@@ -169,7 +169,7 @@ class InterfaceHeader
 
 		void Print()
 		{
-			wclear(this->win);
+			werase(this->win);
 			wattron(this->win, COLOR_PAIR(HEADER_COLOR));
 			if (this->activeTab == 0)
 			{
@@ -273,7 +273,7 @@ class Interface
 
 		void Print()
 		{
-			wclear(this->interfaceRow->win);
+			werase(this->interfaceRow->win);
 			wborder(this->interfaceRow->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
 			if (this->active) {
@@ -519,11 +519,15 @@ class GraphDataColumn
 		void UpdateGraphInterface(Interface *interface)
 		{
 			this->interface = interface;
+
+			this->Update();
 		}
 
 		void Clear()
 		{
 			this->value = 0;
+
+			this->Update();
 		}
 
 		int GetValue()
@@ -564,7 +568,7 @@ class GraphRow
 
 		void Update(std::vector<GraphDataColumn *> *gDataCols, int max)
 		{
-			wclear(this->win);
+			werase(this->win);
 			float currPos = (float)this->value / (float)this->max;
 			for (size_t i = 0; i < gDataCols->size(); i++)
 			{
@@ -627,7 +631,7 @@ class GraphTitle
 
 		void Update()
 		{
-			wclear(this->win);
+			werase(this->win);
 
 			char graphTypeString[graphTypeStringSize];
 			getGraphTypeString(this->graphType, graphTypeString);
@@ -705,7 +709,7 @@ class GraphMaxItem
 
 		void Update()
 		{
-			wclear(this->win);
+			werase(this->win);
 
 			wprintw(this->win, "%d", this->max);
 
@@ -893,6 +897,11 @@ class Graph
 			this->update = update;
 
 			this->Update();
+		}
+
+		Interface * GetInterface()
+		{
+			return this->interface;
 		}
 
 
@@ -1155,7 +1164,7 @@ int main (int argc, char *argv[])
 	{
 		time(&now);
 		diff = difftime(now, lastTime);
-		if (diff > 1)
+		if (diff > 0.5)
 		{
 			parseNetInfo();
 			updateScreen();
@@ -1164,6 +1173,7 @@ int main (int argc, char *argv[])
 			{
 				graphs[i]->Update();
 			}
+			sortInterfaces((InterfaceHeaderContent)interfaceHeader->sortingHeader);
 
 			time(&lastTime);
 			time(&now);
@@ -1438,6 +1448,7 @@ int main (int argc, char *argv[])
 						int oldPlacementY = graphs[graphIndex]->GetPlacementY();
 						int oldWidth = graphs[graphIndex]->GetWidth();
 						int oldHeight = graphs[graphIndex]->GetHeight();
+						Interface *oldInterface = graphs[graphIndex]->GetInterface();
 
 						// Delete the graph
 						delete graphs[graphIndex];
@@ -1445,6 +1456,7 @@ int main (int argc, char *argv[])
 						// Replace the graph
 						graphs[graphIndex] = new Graph(newType, oldPlacementX, oldPlacementY, oldWidth, oldHeight);
 						graphs[graphIndex]->Create();
+						graphs[graphIndex]->UpdateGraphInterface(oldInterface);
 					}
 					break;
 				}
