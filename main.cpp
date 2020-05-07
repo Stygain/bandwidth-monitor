@@ -185,11 +185,11 @@ class InterfaceHeader
 						longest, "Interface Name");
 			}
 			wprintw(this->win, " | ");
-			this->PrintTabTitle(1, "Rcvd Bytes");
+			this->PrintTabTitle(1, " Rcvd Bytes  ");
 			wprintw(this->win, " | ");
 			this->PrintTabTitle(2, "Rcvd Pkts");
 			wprintw(this->win, " | ");
-			this->PrintTabTitle(3, "Sent Bytes");
+			this->PrintTabTitle(3, " Sent Bytes  ");
 			wprintw(this->win, " | ");
 			this->PrintTabTitle(4, "Sent Pkts");
 			wattroff(this->win, COLOR_PAIR(HEADER_COLOR));
@@ -280,8 +280,68 @@ class Interface
 				wattron(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
 			}
 
-			mvwprintw(this->interfaceRow->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
-					longest, this->name, (this->r_bytes - this->r_bytesZeroed), (this->r_packets - this->r_packetsZeroed), (this->t_bytes - this->t_bytesZeroed), (this->t_packets - this->t_packetsZeroed));
+			unsigned long int printableRBytes = (this->r_bytes - this->r_bytesZeroed);
+			char rBytesUnit[3];
+			strcpy(rBytesUnit, "B");
+			if (printableRBytes > 1000)
+			{
+				printableRBytes = printableRBytes / 1000;
+				strcpy(rBytesUnit, "KB");
+			}
+			if (printableRBytes > 1000)
+			{
+				printableRBytes = printableRBytes / 1000;
+				strcpy(rBytesUnit, "MB");
+			}
+			if (printableRBytes > 1000)
+			{
+				printableRBytes = printableRBytes / 1000;
+				strcpy(rBytesUnit, "GB");
+			}
+			if (printableRBytes > 1000)
+			{
+				printableRBytes = printableRBytes / 1000;
+				strcpy(rBytesUnit, "TB");
+			}
+			unsigned long int printableRPackets = (this->r_packets - this->r_packetsZeroed);
+			unsigned long int printableTBytes = (this->t_bytes - this->t_bytesZeroed);
+			char tBytesUnit[3];
+			strcpy(tBytesUnit, "B");
+			if (printableTBytes > 1000)
+			{
+				printableTBytes = printableTBytes / 1000;
+				strcpy(tBytesUnit, "KB");
+			}
+			if (printableTBytes > 1000)
+			{
+				printableTBytes = printableTBytes / 1000;
+				strcpy(tBytesUnit, "MB");
+			}
+			if (printableTBytes > 1000)
+			{
+				printableTBytes = printableTBytes / 1000;
+				strcpy(tBytesUnit, "GB");
+			}
+			if (printableTBytes > 1000)
+			{
+				printableTBytes = printableTBytes / 1000;
+				strcpy(tBytesUnit, "TB");
+			}
+			unsigned long int printableTPackets = (this->t_packets - this->t_packetsZeroed);
+
+			//mvwprintw(this->interfaceRow->win, 1, 1, "%*s | %10lu | %9lu | %10lu | %9lu",
+			//		longest, this->name, (this->r_bytes - this->r_bytesZeroed), (this->r_packets - this->r_packetsZeroed), (this->t_bytes - this->t_bytesZeroed), (this->t_packets - this->t_packetsZeroed));
+			mvwprintw(this->interfaceRow->win, 1, 1,
+					"%*s | %10lu %2s | %9lu | %10lu %2s | %9lu",
+					longest,
+					this->name,
+					printableRBytes,
+					rBytesUnit,
+					printableRPackets,
+					printableTBytes,
+					tBytesUnit,
+					printableTPackets);
+
 
 			if (this->active) {
 				wattroff(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
