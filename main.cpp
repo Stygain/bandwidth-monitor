@@ -1,20 +1,22 @@
-#include <iostream>
+// #include <iostream>
 #include <string.h>
 #include <vector>
 #include <time.h>
 #include <fstream>
-#include <stdlib.h>
+// #include <stdlib.h>
 #include <unistd.h>
-#include <iomanip>
+// #include <iomanip>
 
 #include <ncurses.h>
 
-#include "graph.hpp"
-#include "interface.hpp"
-#include "utils.hpp"
+#include "graph.h"
+#include "interface.h"
+#include "utils.h"
 
 
 std::ofstream logfile;
+Mode mode = MODE_NORMAL;
+int longest = 14;
 
 class SelectionWindow
 {
@@ -127,7 +129,7 @@ bool initializeNetInfo()
 
 		InterfaceRow *interfaceRow = new InterfaceRow(placement);
 		interfaceRows.push_back(interfaceRow);
-		interfaces.push_back(new Interface(ifname, interfaceRow));
+		interfaces.push_back(new Interface(ifname, longest, interfaceRow));
 		placement += 3;
 	}
 
@@ -294,7 +296,7 @@ int main (int argc, char *argv[])
 	noecho();
 	keypad(stdscr, TRUE);
 
-	interfaceHeader = new InterfaceHeader();
+	interfaceHeader = new InterfaceHeader(longest);
 	interfaceFooter = new InterfaceFooter();
 	SelectionWindow *selectionWindow = NULL;
 
@@ -349,6 +351,9 @@ int main (int argc, char *argv[])
 				if (mode == MODE_SEARCH)
 				{
 					mode = MODE_NORMAL;
+					interfaceFooter->UpdateMode(mode);
+					interfaceFooter->Print();
+
 					interfaceHeader->activeTab = -1;
 					interfaceHeader->Print();
 				}
@@ -356,6 +361,9 @@ int main (int argc, char *argv[])
 				{
 					activeGraph = -1;
 					mode = MODE_NORMAL;
+					interfaceFooter->UpdateMode(mode);
+					interfaceFooter->Print();
+
 					for (size_t i = 0; i < graphs.size(); i++)
 					{
 						graphs[i]->setActive(false);
@@ -364,6 +372,9 @@ int main (int argc, char *argv[])
 				else if (mode == MODE_GRAPH_SELECTION)
 				{
 					mode = MODE_GRAPH;
+					interfaceFooter->UpdateMode(mode);
+					interfaceFooter->Print();
+
 					int graphIndex = modulo(activeGraph, (int)graphs.size());
 					if (selectionWindow != NULL)
 					{
@@ -500,7 +511,9 @@ int main (int argc, char *argv[])
 					}
 
 					mode = MODE_SEARCH;
+					interfaceFooter->UpdateMode(mode);
 					interfaceFooter->Print();
+
 					break;
 				}
 
@@ -563,7 +576,9 @@ int main (int argc, char *argv[])
 					if (mode == MODE_SEARCH)
 					{
 						mode = MODE_NORMAL;
+						interfaceFooter->UpdateMode(mode);
 						interfaceFooter->Print();
+
 						interfaceHeader->sortingHeader = interfaceHeader->activeTab;
 						interfaceHeader->activeTab = -1;
 						interfaceHeader->Print();
@@ -581,6 +596,9 @@ int main (int argc, char *argv[])
 						if (activeGraph != -1)
 						{
 							mode = MODE_GRAPH_SELECTION;
+							interfaceFooter->UpdateMode(mode);
+							interfaceFooter->Print();
+
 							int graphIndex = modulo(activeGraph, (int)graphs.size());
 							selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1, graphTypeStringSize + 1, (int)GT_END + 2);
 							graphs[graphIndex]->SetUpdate(false);
@@ -589,6 +607,9 @@ int main (int argc, char *argv[])
 					else if (mode == MODE_GRAPH_SELECTION)
 					{
 						mode = MODE_GRAPH;
+						interfaceFooter->UpdateMode(mode);
+						interfaceFooter->Print();
+
 						int graphIndex = modulo(activeGraph, (int)graphs.size());
 
 						// Get the new graph type
@@ -653,6 +674,7 @@ int main (int argc, char *argv[])
 					}
 
 					mode = MODE_GRAPH;
+					interfaceFooter->UpdateMode(mode);
 					interfaceFooter->Print();
 
 					break;

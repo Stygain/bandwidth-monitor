@@ -1,15 +1,16 @@
-#pragma once
+#ifndef UTILS_H
+#define UTILS_H
 
-#include <iostream>
+// #include <iostream>
 #include <string.h>
-#include <vector>
-#include <time.h>
-#include <fstream>
-#include <stdlib.h>
-#include <unistd.h>
-#include <iomanip>
+// #include <vector>
+// #include <time.h>
+// #include <fstream>
+// #include <stdlib.h>
+// #include <unistd.h>
+// #include <iomanip>
 
-#include <ncurses.h>
+// #include <ncurses.h>
 
 
 typedef enum
@@ -20,8 +21,6 @@ typedef enum
 	MODE_GRAPH_SELECTION
 } Mode;
 
-Mode mode = MODE_NORMAL;
-
 #define modeStringSize 20
 
 const char modeStrings[4][modeStringSize] =
@@ -30,11 +29,6 @@ const char modeStrings[4][modeStringSize] =
 	"Sort",
 	"Graph",
 	"Graph Selection"
-};
-
-void getModeString(Mode mode, char *modeString)
-{
-	strcpy(modeString, modeStrings[mode]);
 };
 
 typedef enum
@@ -57,11 +51,6 @@ const char graphTypeStrings[5][graphTypeStringSize] =
 	"END"
 };
 
-void getGraphTypeString(GraphType gt, char *graphTypeString)
-{
-	strcpy(graphTypeString, graphTypeStrings[gt]);
-};
-
 typedef enum
 {
 	HEADER_INTERFACE_NAME,
@@ -71,4 +60,7 @@ typedef enum
 	HEADER_SENT_PKTS
 } InterfaceHeaderContent;
 
+void getModeString(Mode mode, char *modeString);
+void getGraphTypeString(GraphType gt, char *graphTypeString);
 
+#endif
