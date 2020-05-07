@@ -1,5 +1,5 @@
-FILES = main.cpp graph.cpp interface.cpp utils.cpp logger.cpp
-OBJECTS = main.o graph.o interface.o utils.o logger.o
+FILES = main.cpp graph.cpp interface.cpp utils.cpp logger.cpp settings.cpp
+OBJECTS = main.o graph.o interface.o utils.o logger.o settings.o
 EXECUTABLE = bandwidth-monitor
 
 build: $(OBJECTS) $(EXECUTABLE)
@@ -18,10 +18,10 @@ clean:
 	rm $(EXECUTABLE)
 
 $(OBJECTS): %.o: %.cpp
-	g++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@ -lncurses -Wno-write-strings -Wno-format
+	g++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@ -lncurses -ljsoncpp -Wno-write-strings -Wno-format
 
 $(EXECUTABLE): $(OBJECTS)
-	g++ $(OBJECTS) -o $(EXECUTABLE) -lncurses
+	g++ $(OBJECTS) -o $(EXECUTABLE) -lncurses -ljsoncpp
 
 test: $(EXECUTABLE)
 	./$(EXECUTABLE)

@@ -1,6 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdio.h>
 #include <string.h>
 
 
@@ -53,5 +54,6 @@ typedef enum
 
 void getModeString(Mode mode, char *modeString);
 void getGraphTypeString(GraphType gt, char *graphTypeString);
+bool fileExists(const char * fileName);
 
 #endif

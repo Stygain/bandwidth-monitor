@@ -12,6 +12,7 @@
 #include "interface.h"
 #include "utils.h"
 #include "logger.h"
+#include "settings.h"
 
 
 Mode mode = MODE_NORMAL;
@@ -85,6 +86,7 @@ std::vector<Interface *> interfaces;
 InterfaceFooter *interfaceFooter;
 
 extern Logger *logger;
+extern Settings *settings;
 
 
 
@@ -291,11 +293,14 @@ int main (int argc, char *argv[])
 	logger->StartLogfile();
 	logger->Log("Test log message\n");
 
+	// TODO
+	settings->StartSettingsFile();
+
+	int placement = initializeNetInfo();
+
 	interfaceHeader = new InterfaceHeader(longest);
 	interfaceFooter = new InterfaceFooter();
 	SelectionWindow *selectionWindow = NULL;
-
-	int placement = initializeNetInfo();
 
 	graphs.push_back(new Graph(GT_PKTS_RECV, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
 	graphs.push_back(new Graph(GT_PKTS_SEND, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));

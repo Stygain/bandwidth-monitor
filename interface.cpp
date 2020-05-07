@@ -94,14 +94,14 @@ void InterfaceHeader::Print()
 	{
 		wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
 		mvwprintw(this->win, 0, 1, "%*s",
-				longest, "Interface Name");
+				this->longest, "Interface Name");
 		wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
 		wattron(this->win, COLOR_PAIR(HEADER_COLOR));
 	}
 	else
 	{
 		mvwprintw(this->win, 0, 1, "%*s",
-				longest, "Interface Name");
+				this->longest, "Interface Name");
 	}
 	wprintw(this->win, " | ");
 	this->PrintTabTitle(1, " Rcvd Bytes  ");
