@@ -266,7 +266,7 @@ int main (int argc, char *argv[])
 	{
 		time(&now);
 		diff = difftime(now, lastTime);
-		if (diff > 0.5)
+		if (diff > 1)
 		{
 			parseNetInfo();
 			updateScreen();
@@ -276,6 +276,11 @@ int main (int argc, char *argv[])
 				graphs[i]->Update();
 			}
 			sortInterfaces((InterfaceHeaderContent)interfaceHeader->sortingHeader);
+
+			if (interfaceDetailWindow != NULL)
+			{
+				interfaceDetailWindow->Update();
+			}
 
 			time(&lastTime);
 			time(&now);
@@ -536,7 +541,8 @@ int main (int argc, char *argv[])
 						interfaceFooter->UpdateMode(mode);
 						interfaceFooter->Print();
 
-						//interfaceDetailWindow = new InterfaceDetailWindow();
+						InterfaceRow *currentInterfaceRow = interfaces[activeIndex]->getInterfaceRow();
+						interfaceDetailWindow = new InterfaceDetailWindow(currentInterfaceRow->GetPlacementX(), currentInterfaceRow->GetPlacementY() + 2, currentInterfaceRow->GetWidth(), 8, interfaces[activeIndex]);
 
 						//for (size_t i = 0; i < graphs.size(); i++)
 						//{

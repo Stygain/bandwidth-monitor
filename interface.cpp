@@ -135,6 +135,27 @@ InterfaceRow::~InterfaceRow()
 {
 }
 
+int InterfaceRow::GetPlacementX()
+{
+	return this->placementX;
+}
+
+int InterfaceRow::GetPlacementY()
+{
+	return this->placementY;
+}
+
+int InterfaceRow::GetWidth()
+{
+	return this->width;
+}
+
+int InterfaceRow::GetHeight()
+{
+	return this->height;
+}
+
+
 
 Interface::Interface(char *name, int longest)
 {
@@ -279,6 +300,11 @@ void Interface::setInterfaceRow(InterfaceRow *interfaceRow)
 	this->interfaceRow = interfaceRow;
 }
 
+InterfaceRow * Interface::getInterfaceRow()
+{
+	return this->interfaceRow;
+}
+
 InterfaceDetailWindow::InterfaceDetailWindow(int placementX, int placementY, int width, int height, Interface *interface)
 {
 	this->placementX = placementX;
@@ -287,14 +313,16 @@ InterfaceDetailWindow::InterfaceDetailWindow(int placementX, int placementY, int
 	this->height = height;
 
 	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
-	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
-	wrefresh(this->win);
 	this->Update();
 }
 
 void InterfaceDetailWindow::Update()
 {
+	werase(this->win);
+	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+	wrefresh(this->win);
 	//char graphTypeString[graphTypeStringSize];
 	//for (int i = 0; i < GT_END; i++)
 	//{

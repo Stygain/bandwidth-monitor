@@ -59,6 +59,14 @@ class InterfaceRow
 
 		~InterfaceRow();
 
+		int GetPlacementX();
+
+		int GetPlacementY();
+
+		int GetWidth();
+
+		int GetHeight();
+
 	public:
 		WINDOW *win;
 
@@ -95,6 +103,8 @@ class Interface
 		void UnZero();
 
 		void setInterfaceRow(InterfaceRow *interfaceRow);
+
+		InterfaceRow * getInterfaceRow();
 
 	public:
 		char *name;
