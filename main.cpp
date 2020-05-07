@@ -10,6 +10,7 @@
 
 #include "graph.h"
 #include "interface.h"
+#include "selectionWindow.h"
 #include "utils.h"
 #include "logger.h"
 #include "settings.h"
@@ -18,72 +19,13 @@
 Mode mode = MODE_NORMAL;
 int longest = 14;
 
-class SelectionWindow
-{
-	public:
-		SelectionWindow(GraphType graphType, int placementX, int placementY, int width, int height)
-		{
-			this->graphType = graphType;
-			this->placementX = placementX;
-			this->placementY = placementY;
-			this->width = width;
-			this->height = height;
-
-			this->win = newwin(this->height, this->width, this->placementY, this->placementX);
-			wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
-
-			wrefresh(this->win);
-			this->Update();
-		}
-
-		void Update()
-		{
-			char graphTypeString[graphTypeStringSize];
-			for (int i = 0; i < GT_END; i++)
-			{
-				getGraphTypeString((GraphType)i, graphTypeString);
-				if (i == activeItem)
-				{
-					wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				}
-				mvwprintw(this->win, i + 1, 1, "%s", graphTypeString);
-				if (i == activeItem)
-				{
-					wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-				}
-			}
-
-			wrefresh(this->win);
-		}
-
-		GraphType GetActiveItemGraphType()
-		{
-			return (GraphType)activeItem;
-		}
 
 
-	public:
-		int activeItem = -1;
-		int max = (int)GT_END;
-
-
-	private:
-		WINDOW *win;
-
-		GraphType graphType;
-
-		int placementX;
-		int placementY;
-		int width;
-		int height;
-};
-
-
-
-InterfaceHeader *interfaceHeader;
+InterfaceHeader *interfaceHeader = NULL;
 std::vector<InterfaceRow *> interfaceRows;
 std::vector<Interface *> interfaces;
-InterfaceFooter *interfaceFooter;
+InterfaceFooter *interfaceFooter = NULL;
+InterfaceDetailWindow *interfaceDetailWindow = NULL;
 
 extern Logger *logger;
 extern Settings *settings;
@@ -130,7 +72,7 @@ bool initializeNetInfo()
 			longest = len + 1;
 		}
 
-		InterfaceRow *interfaceRow = new InterfaceRow(placement);
+		InterfaceRow *interfaceRow = new InterfaceRow(0, placement, COLS, 3);
 		interfaceRows.push_back(interfaceRow);
 		interfaces.push_back(new Interface(ifname, longest, interfaceRow));
 		placement += 3;
@@ -293,9 +235,6 @@ int main (int argc, char *argv[])
 	logger->StartLogfile();
 	logger->Log("Test log message\n");
 
-	// TODO
-	settings->StartSettingsFile();
-
 	int placement = initializeNetInfo();
 
 	interfaceHeader = new InterfaceHeader(longest);
@@ -318,7 +257,10 @@ int main (int argc, char *argv[])
 	double diff;
 	double lastDiff;
 
+	parseNetInfo();
 	updateScreen();
+
+	settings->InitializeSettings();
 
 	while (true)
 	{
@@ -582,14 +524,24 @@ int main (int argc, char *argv[])
 						interfaceHeader->sortingHeader = interfaceHeader->activeTab;
 						interfaceHeader->activeTab = -1;
 						interfaceHeader->Print();
+
+						settings->root["sortingColumn"] = interfaceHeader->sortingHeader;
+						settings->SaveSettings();
+
 						sortInterfaces((InterfaceHeaderContent)interfaceHeader->sortingHeader);
 					}
 					else if (mode == MODE_NORMAL)
 					{
-						for (size_t i = 0; i < graphs.size(); i++)
-						{
-							graphs[i]->UpdateGraphInterface(interfaces[activeIndex]);
-						}
+						mode = MODE_INTERFACE_DETAIL;
+						interfaceFooter->UpdateMode(mode);
+						interfaceFooter->Print();
+
+						//interfaceDetailWindow = new InterfaceDetailWindow();
+
+						//for (size_t i = 0; i < graphs.size(); i++)
+						//{
+						//	graphs[i]->UpdateGraphInterface(interfaces[activeIndex]);
+						//}
 					}
 					else if (mode == MODE_GRAPH)
 					{

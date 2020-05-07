@@ -10,17 +10,19 @@ typedef enum
 	MODE_NORMAL,
 	MODE_SEARCH,
 	MODE_GRAPH,
-	MODE_GRAPH_SELECTION
+	MODE_GRAPH_SELECTION,
+	MODE_INTERFACE_DETAIL
 } Mode;
 
-#define modeStringSize 20
+#define modeStringSize 25
 
-const char modeStrings[4][modeStringSize] =
+const char modeStrings[5][modeStringSize] =
 {
 	"Normal",
 	"Sort",
 	"Graph",
-	"Graph Selection"
+	"Graph Selection",
+	"Mode Interface Detail"
 };
 
 typedef enum

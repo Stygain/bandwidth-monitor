@@ -1,5 +1,5 @@
-FILES = main.cpp graph.cpp interface.cpp utils.cpp logger.cpp settings.cpp
-OBJECTS = main.o graph.o interface.o utils.o logger.o settings.o
+FILES = main.cpp graph.cpp interface.cpp utils.cpp logger.cpp settings.cpp selectionWindow.cpp
+OBJECTS = main.o graph.o interface.o utils.o logger.o settings.o selectionWindow.o
 EXECUTABLE = bandwidth-monitor
 
 build: $(OBJECTS) $(EXECUTABLE)

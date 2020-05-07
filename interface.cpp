@@ -121,10 +121,14 @@ int InterfaceHeader::GetTabCount()
 }
 
 
-InterfaceRow::InterfaceRow(int placement)
+InterfaceRow::InterfaceRow(int placementX, int placementY, int width, int height)
 {
-	this->placement = placement;
-	this->win = newwin(3, COLS, this->placement, 0);
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	this->win = newwin(3, this->width, this->placementY, this->placementX);
 }
 
 InterfaceRow::~InterfaceRow()
@@ -274,3 +278,38 @@ void Interface::setInterfaceRow(InterfaceRow *interfaceRow)
 {
 	this->interfaceRow = interfaceRow;
 }
+
+InterfaceDetailWindow::InterfaceDetailWindow(int placementX, int placementY, int width, int height, Interface *interface)
+{
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
+	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+
+	wrefresh(this->win);
+	this->Update();
+}
+
+void InterfaceDetailWindow::Update()
+{
+	//char graphTypeString[graphTypeStringSize];
+	//for (int i = 0; i < GT_END; i++)
+	//{
+	//	getGraphTypeString((GraphType)i, graphTypeString);
+	//	if (i == activeItem)
+	//	{
+	//		wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+	//	}
+	//	mvwprintw(this->win, i + 1, 1, "%s", graphTypeString);
+	//	if (i == activeItem)
+	//	{
+	//		wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+	//	}
+	//}
+
+	//wrefresh(this->win);
+}
+

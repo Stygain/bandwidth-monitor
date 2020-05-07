@@ -55,7 +55,7 @@ class InterfaceHeader
 class InterfaceRow
 {
 	public:
-		InterfaceRow(int placement);
+		InterfaceRow(int placementX, int placementY, int width, int height);
 
 		~InterfaceRow();
 
@@ -63,7 +63,10 @@ class InterfaceRow
 		WINDOW *win;
 
 	private:
-		int placement;
+		int placementX;
+		int placementY;
+		int width;
+		int height;
 };
 
 
@@ -112,6 +115,27 @@ class Interface
 		InterfaceRow * interfaceRow = NULL;
 		bool active = false;
 		int longest;
+};
+
+
+class InterfaceDetailWindow
+{
+	public:
+		InterfaceDetailWindow(int placementX, int placementY, int width, int height, Interface *interface);
+
+		void Update();
+
+	public:
+
+	private:
+		WINDOW *win;
+
+		int placementX;
+		int placementY;
+		int width;
+		int height;
+
+		Interface *interface;
 };
 
 

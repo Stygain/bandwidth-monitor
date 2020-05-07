@@ -18,6 +18,7 @@ class Logger
 		void StartLogfile();
 		void EndLogfile();
 		void Log(char *msg);
+		void Log(const char *msg);
 
 	private:
 		std::ofstream logfile;

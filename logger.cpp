@@ -32,3 +32,8 @@ void Logger::Log(char *msg)
 {
 	logfile << msg;
 }
+
+void Logger::Log(const char *msg)
+{
+	logfile << msg;
+}
