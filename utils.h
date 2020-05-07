@@ -1,16 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-// #include <iostream>
 #include <string.h>
-// #include <vector>
-// #include <time.h>
-// #include <fstream>
-// #include <stdlib.h>
-// #include <unistd.h>
-// #include <iomanip>
-
-// #include <ncurses.h>
 
 
 typedef enum

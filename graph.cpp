@@ -1,16 +1,3 @@
-// #pragma once
-
-// #include <iostream>
-// #include <string.h>
-// #include <vector>
-// #include <time.h>
-// #include <fstream>
-// #include <stdlib.h>
-// #include <unistd.h>
-// #include <iomanip>
-//
-// #include <ncurses.h>
-
 #include "graph.h"
 
 GraphDataColumn::GraphDataColumn(GraphType graphType, std::vector<Interface *> *interfaces, Interface *interface)
@@ -189,6 +176,7 @@ void GraphRow::Update(std::vector<GraphDataColumn *> *gDataCols, int max)
 
 	wrefresh(this->win);
 }
+
 
 GraphTitle::GraphTitle(GraphType graphType, int placementX, int placementY, int width, int height, Interface *interface)
 {

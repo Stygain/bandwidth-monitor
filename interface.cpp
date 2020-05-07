@@ -1,16 +1,3 @@
-// #pragma once
-
-// #include <iostream>
-// #include <string.h>
-// #include <vector>
-// #include <time.h>
-// #include <fstream>
-// #include <stdlib.h>
-// #include <unistd.h>
-// #include <iomanip>
-
-// #include <ncurses.h>
-
 #include "interface.h"
 
 
@@ -62,7 +49,6 @@ void InterfaceFooter::Print()
 
 	wrefresh(this->win);
 }
-
 
 
 InterfaceHeader::InterfaceHeader(int longest)
@@ -135,10 +121,6 @@ int InterfaceHeader::GetTabCount()
 }
 
 
-
-
-
-
 InterfaceRow::InterfaceRow(int placement)
 {
 	this->placement = placement;
@@ -148,10 +130,6 @@ InterfaceRow::InterfaceRow(int placement)
 InterfaceRow::~InterfaceRow()
 {
 }
-
-
-
-
 
 
 Interface::Interface(char *name, int longest)

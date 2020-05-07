@@ -1,15 +1,8 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-// #include <iostream>
 #include <string.h>
 #include <vector>
-// #include <time.h>
-// #include <fstream>
-// #include <stdlib.h>
-// #include <unistd.h>
-// #include <iomanip>
-
 #include <ncurses.h>
 
 #include "interface.h"
@@ -64,6 +57,7 @@ class GraphRow
 		int height;
 		int width;
 };
+
 
 class GraphTitle
 {

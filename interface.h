@@ -1,20 +1,11 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-// #include <iostream>
 #include <string.h>
-// #include <vector>
-// #include <time.h>
-// #include <fstream>
-// #include <stdlib.h>
-// #include <unistd.h>
-// #include <iomanip>
-
 #include <ncurses.h>
 
 #include "utils.h"
 #include "colors.h"
-
 
 
 
@@ -60,6 +51,7 @@ class InterfaceHeader
 		int longest;
 };
 
+
 class InterfaceRow
 {
 	public:
@@ -73,6 +65,7 @@ class InterfaceRow
 	private:
 		int placement;
 };
+
 
 class Interface
 {
@@ -120,5 +113,6 @@ class Interface
 		bool active = false;
 		int longest;
 };
+
 
 #endif

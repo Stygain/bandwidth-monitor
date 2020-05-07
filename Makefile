@@ -18,7 +18,7 @@ clean:
 	rm $(EXECUTABLE)
 
 $(OBJECTS): %.o: %.cpp
-	g++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@ -lncurses
+	g++ -c $(CFLAGS) $(CPPFLAGS) $< -o $@ -lncurses -Wno-write-strings -Wno-format
 
 $(EXECUTABLE): $(OBJECTS)
 	g++ $(OBJECTS) -o $(EXECUTABLE) -lncurses
