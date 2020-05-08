@@ -334,6 +334,18 @@ int main (int argc, char *argv[])
 					}
 					//graphs[graphIndex]->Update();
 				}
+				else if (mode == MODE_INTERFACE_DETAIL)
+				{
+					mode = MODE_NORMAL;
+					interfaceFooter->UpdateMode(mode);
+					interfaceFooter->Print();
+
+					if (interfaceDetailWindow != NULL)
+					{
+						delete interfaceDetailWindow;
+						interfaceDetailWindow = NULL;
+					}
+				}
 				else
 				{
 					break;

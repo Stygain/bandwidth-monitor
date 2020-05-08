@@ -40,6 +40,11 @@ void InterfaceFooter::Print()
 		wprintw(this->win, " %s | %s ",
 				"jk enter to Select", "q Quit");
 	}
+	else if (mode == MODE_INTERFACE_DETAIL)
+	{
+		wprintw(this->win, " %s | %s ",
+				"hjkl enter to Select", "q Quit");
+	}
 	else
 	{
 		wprintw(this->win, " %s | %s | %s | %s | %s | %s | %s ",
