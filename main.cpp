@@ -238,7 +238,8 @@ int main (int argc, char *argv[])
 	int placement = initializeNetInfo();
 
 	interfaceHeader = new InterfaceHeader(longest);
-	interfaceFooter = new InterfaceFooter();
+	//interfaceFooter = new InterfaceFooter();
+	interfaceFooter = new InterfaceFooter(0, LINES-1, COLS, 1);
 	SelectionWindow *selectionWindow = NULL;
 
 	graphs.push_back(new Graph(GT_PKTS_RECV, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
@@ -261,6 +262,11 @@ int main (int argc, char *argv[])
 	updateScreen();
 
 	settings->InitializeSettings();
+
+	logger->Log(std::to_string(COLS));
+	logger->Log("\n");
+	logger->Log(std::to_string(LINES));
+	logger->Log("\n");
 
 	while (true)
 	{
@@ -295,7 +301,15 @@ int main (int argc, char *argv[])
 		if (ch != -1)
 		{
 			if (ch == KEY_RESIZE) {
-				// Do something
+				// TODO
+				logger->Log("RESIZE\n");
+				logger->Log(std::to_string(COLS));
+				logger->Log("\n");
+				logger->Log(std::to_string(LINES));
+				logger->Log("\n");
+
+				clear();
+				interfaceFooter->Resize(0, LINES-1, COLS, 1);
 			}
 			if (ch == (int)'q')
 			{

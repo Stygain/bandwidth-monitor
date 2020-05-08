@@ -31,9 +31,17 @@ void Logger::EndLogfile()
 void Logger::Log(char *msg)
 {
 	logfile << msg;
+	logfile.flush();
 }
 
 void Logger::Log(const char *msg)
 {
 	logfile << msg;
+	logfile.flush();
+}
+
+void Logger::Log(std::string msg)
+{
+	logfile << msg.c_str();
+	logfile.flush();
 }

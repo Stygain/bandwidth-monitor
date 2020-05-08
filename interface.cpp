@@ -1,13 +1,29 @@
 #include "interface.h"
 
 
-InterfaceFooter::InterfaceFooter()
+InterfaceFooter::InterfaceFooter(int placementX, int placementY, int width, int height)
 {
-	this->win = newwin(1, COLS, LINES-1, 0);
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 }
 
 InterfaceFooter::~InterfaceFooter()
 {
+}
+
+void InterfaceFooter::Resize(int placementX, int placementY, int width, int height)
+{
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	wresize(this->win, height, width);
+	mvwin(this->win, this->placementY, this->placementX);
 }
 
 void InterfaceFooter::UpdateMode(Mode mode)

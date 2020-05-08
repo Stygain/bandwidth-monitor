@@ -12,9 +12,11 @@
 class InterfaceFooter
 {
 	public:
-		InterfaceFooter();
+		InterfaceFooter(int placementX, int placementY, int width, int height);
 
 		~InterfaceFooter();
+
+		void Resize(int placementX, int placementY, int width, int height);
 
 		void UpdateMode(Mode mode);
 
@@ -24,7 +26,12 @@ class InterfaceFooter
 		WINDOW *win;
 
 	private:
-		Mode mode;
+		Mode mode = MODE_NORMAL;
+
+		int placementX;
+		int placementY;
+		int width;
+		int height;
 };
 
 
