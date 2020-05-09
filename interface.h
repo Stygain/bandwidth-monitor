@@ -7,6 +7,24 @@
 #include "utils.h"
 #include "colors.h"
 
+typedef enum
+{
+	IDO_SELECT,
+	IDO_HIDE,
+	IDO_END
+} InterfaceDetailOption;
+
+#define interfaceDetailOptionStringSize 25
+
+const char interfaceDetailOptionStrings[5][interfaceDetailOptionStringSize] =
+{
+	"Select for graph",
+	"Hide interface",
+	"END"
+};
+
+void getInterfaceDetailOptionString(InterfaceDetailOption interfaceDetailOption, char *interfaceDetailOptionString);
+
 
 
 class InterfaceFooter
@@ -113,6 +131,9 @@ class Interface
 
 		InterfaceRow * getInterfaceRow();
 
+		void RemoveFromUI();
+		bool IsHidden();
+
 	public:
 		char *name;
 		unsigned long int r_bytes;
@@ -131,6 +152,7 @@ class Interface
 	private:
 		InterfaceRow * interfaceRow = NULL;
 		bool active = false;
+		bool hidden = false;
 		int longest;
 };
 
@@ -141,6 +163,13 @@ class InterfaceDetailWindow
 		InterfaceDetailWindow(int placementX, int placementY, int width, int height, Interface *interface);
 
 		void Update();
+
+		Interface *GetInterface();
+
+		int GetActiveItem();
+		void SetActiveItem(int activeItem);
+		void IncrementActiveItem();
+		void DecrementActiveItem();
 
 	public:
 
@@ -153,6 +182,7 @@ class InterfaceDetailWindow
 		int height;
 
 		Interface *interface;
+		int activeItem = -1;
 };
 
 

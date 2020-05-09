@@ -2,6 +2,7 @@
 #include <string.h>
 #include <vector>
 #include <time.h>
+#include <algorithm>
 // #include <stdlib.h>
 #include <unistd.h>
 // #include <iomanip>
@@ -46,10 +47,8 @@ Interface *getMatchingInterface(char *ifname)
 	return NULL;
 }
 
-bool initializeNetInfo()
+void initializeNetInfo()
 {
-	int placement = 1;
-
 	FILE *fp = fopen("/proc/net/dev", "r");
 	char buf[200];
 	char ifname[20];
@@ -72,9 +71,22 @@ bool initializeNetInfo()
 			longest = len + 1;
 		}
 
+		interfaces.push_back(new Interface(ifname, longest));
+	}
+
+	fclose(fp);
+}
+
+int initializeInterfaceUi()
+{
+	int placement = 1;
+
+	for (size_t i = 0; i < interfaces.size(); ++i)
+	{
 		InterfaceRow *interfaceRow = new InterfaceRow(0, placement, COLS, 3);
 		interfaceRows.push_back(interfaceRow);
-		interfaces.push_back(new Interface(ifname, longest, interfaceRow));
+		interfaces[i]->setInterfaceRow(interfaceRow);
+
 		placement += 3;
 	}
 
@@ -82,9 +94,8 @@ bool initializeNetInfo()
 	{
 		interfaces[i]->Refresh();
 	}
-	refresh();
 
-	fclose(fp);
+	refresh();
 
 	return placement;
 }
@@ -123,11 +134,6 @@ void updateScreen()
 	}
 	interfaceFooter->Print();
 	refresh();
-}
-
-int modulo(int a, int b)
-{
-	return ((b + (a % b)) % b);
 }
 
 void sortInterfaces(InterfaceHeaderContent column)
@@ -197,9 +203,14 @@ void sortInterfaces(InterfaceHeaderContent column)
 		}
 	}
 
+	int interfaceRowIndex = 0;
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
-		interfaces[i]->setInterfaceRow(interfaceRows[i]);
+		if (!interfaces[i]->IsHidden())
+		{
+			interfaces[i]->setInterfaceRow(interfaceRows[interfaceRowIndex]);
+			interfaceRowIndex++;
+		}
 	}
 
 	updateScreen();
@@ -235,10 +246,10 @@ int main (int argc, char *argv[])
 	logger->StartLogfile();
 	logger->Log("Test log message\n");
 
-	int placement = initializeNetInfo();
+	initializeNetInfo();
+	int placement = initializeInterfaceUi();
 
 	interfaceHeader = new InterfaceHeader(longest);
-	//interfaceFooter = new InterfaceFooter();
 	interfaceFooter = new InterfaceFooter(0, LINES-1, COLS, 1);
 	SelectionWindow *selectionWindow = NULL;
 
@@ -387,9 +398,14 @@ int main (int argc, char *argv[])
 					{
 						if (selectionWindow != NULL)
 						{
-							selectionWindow->activeItem++;
-							selectionWindow->activeItem = modulo(selectionWindow->activeItem, selectionWindow->max);
-							selectionWindow->Update();
+							selectionWindow->IncrementActiveItem();
+						}
+					}
+					else if (mode == MODE_INTERFACE_DETAIL)
+					{
+						if (interfaceDetailWindow != NULL)
+						{
+							interfaceDetailWindow->IncrementActiveItem();
 						}
 					}
 
@@ -419,12 +435,28 @@ int main (int argc, char *argv[])
 					{
 						if (selectionWindow != NULL)
 						{
-							if (selectionWindow->activeItem != -1)
+							if (selectionWindow->GetActiveItem() != -1)
 							{
-								selectionWindow->activeItem--;
+								selectionWindow->DecrementActiveItem();
 							}
-							selectionWindow->activeItem = modulo(selectionWindow->activeItem, selectionWindow->max);
-							selectionWindow->Update();
+							else
+							{
+								selectionWindow->SetActiveItem(selectionWindow->GetActiveItem());
+							}
+						}
+					}
+					else if (mode == MODE_INTERFACE_DETAIL)
+					{
+						if (interfaceDetailWindow != NULL)
+						{
+							if (interfaceDetailWindow->GetActiveItem() != -1)
+							{
+								interfaceDetailWindow->DecrementActiveItem();
+							}
+							else
+							{
+								interfaceDetailWindow->SetActiveItem(interfaceDetailWindow->GetActiveItem());
+							}
 						}
 					}
 
@@ -573,11 +605,6 @@ int main (int argc, char *argv[])
 
 						InterfaceRow *currentInterfaceRow = interfaces[activeIndex]->getInterfaceRow();
 						interfaceDetailWindow = new InterfaceDetailWindow(currentInterfaceRow->GetPlacementX(), currentInterfaceRow->GetPlacementY() + 2, currentInterfaceRow->GetWidth(), 8, interfaces[activeIndex]);
-
-						//for (size_t i = 0; i < graphs.size(); i++)
-						//{
-						//	graphs[i]->UpdateGraphInterface(interfaces[activeIndex]);
-						//}
 					}
 					else if (mode == MODE_GRAPH)
 					{
@@ -623,6 +650,59 @@ int main (int argc, char *argv[])
 						graphs[graphIndex]->Create();
 						graphs[graphIndex]->UpdateGraphInterface(oldInterface);
 					}
+					else if (mode == MODE_INTERFACE_DETAIL)
+					{
+						InterfaceDetailOption activeIdo = (InterfaceDetailOption)interfaceDetailWindow->GetActiveItem();
+						Interface *activeInterface = interfaceDetailWindow->GetInterface();
+
+						if (activeIdo == IDO_SELECT)
+						{
+							for (size_t i = 0; i < graphs.size(); i++)
+							{
+								graphs[i]->UpdateGraphInterface(activeInterface);
+							}
+						}
+						else if (activeIdo = IDO_HIDE)
+						{
+							settings->root["hiddenInterfaces"].append(activeInterface->name);
+							settings->SaveSettings();
+
+							mode = MODE_NORMAL;
+							interfaceFooter->UpdateMode(mode);
+							interfaceFooter->Print();
+
+							if (interfaceDetailWindow != NULL)
+							{
+								delete interfaceDetailWindow;
+								interfaceDetailWindow = NULL;
+							}
+
+							activeInterface->RemoveFromUI();
+
+							std::vector<Interface *>::iterator it = std::find(interfaces.begin(), interfaces.end(), activeInterface);
+							if (it != interfaces.end())
+							{
+								logger->Log("Element Found\n");
+								int index = std::distance(interfaces.begin(), it);
+								logger->Log(std::to_string(index) + "\n");
+								
+								// Move each interface up one row
+								for (size_t i = (size_t)index; i < (interfaces.size() - 1); ++i)
+								{
+									interfaces[i+1]->setInterfaceRow(interfaceRows[i]);
+								}
+								updateScreen();
+
+								//// Delete the unneeded row
+								//delete interfaceRows[interfaceRows.size()];
+							}
+							else
+							{
+								logger->Log("Element Not Found\n");
+							}
+						}
+					}
+
 					break;
 				}
 

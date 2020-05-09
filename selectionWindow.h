@@ -16,11 +16,11 @@ class SelectionWindow
 
 		GraphType GetActiveItemGraphType();
 
-	public:
-		int activeItem = -1;
-		int max = (int)GT_END;
-
-
+		int GetActiveItem();
+		void SetActiveItem(int activeItem);
+		void IncrementActiveItem();
+		void DecrementActiveItem();
+	
 	private:
 		WINDOW *win;
 
@@ -30,6 +30,8 @@ class SelectionWindow
 		int placementY;
 		int width;
 		int height;
+
+		int activeItem = -1;
 };
 
 #endif

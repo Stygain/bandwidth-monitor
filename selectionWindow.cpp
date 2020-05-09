@@ -41,3 +41,31 @@ GraphType SelectionWindow::GetActiveItemGraphType()
 	return (GraphType)activeItem;
 }
 
+int SelectionWindow::GetActiveItem()
+{
+	return this->activeItem;
+}
+
+void SelectionWindow::SetActiveItem(int activeItem)
+{
+	this->activeItem = activeItem;
+	this->activeItem = modulo(this->activeItem, GT_END);
+
+	this->Update();
+}
+
+void SelectionWindow::IncrementActiveItem()
+{
+	this->activeItem++;
+	this->activeItem = modulo(this->activeItem, GT_END);
+
+	this->Update();
+}
+
+void SelectionWindow::DecrementActiveItem()
+{
+	this->activeItem--;
+	this->activeItem = modulo(this->activeItem, GT_END);
+
+	this->Update();
+}

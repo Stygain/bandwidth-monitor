@@ -1,6 +1,11 @@
 #include "interface.h"
 
 
+void getInterfaceDetailOptionString(InterfaceDetailOption interfaceDetailOption, char *interfaceDetailOptionString)
+{
+	strcpy(interfaceDetailOptionString, interfaceDetailOptionStrings[interfaceDetailOption]);
+};
+
 InterfaceFooter::InterfaceFooter(int placementX, int placementY, int width, int height)
 {
 	this->placementX = placementX;
@@ -59,7 +64,7 @@ void InterfaceFooter::Print()
 	else if (mode == MODE_INTERFACE_DETAIL)
 	{
 		wprintw(this->win, " %s | %s ",
-				"hjkl enter to Select", "q Quit");
+				"jk enter to Select", "q Quit");
 	}
 	else
 	{
@@ -220,13 +225,6 @@ void Interface::Update(unsigned long int r_bytes,
 
 void Interface::Print()
 {
-	werase(this->interfaceRow->win);
-	wborder(this->interfaceRow->win, 0, 0, 0, 0, 0, 0, 0, 0);
-
-	if (this->active) {
-		wattron(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
-	}
-
 	unsigned long int printableRBytes = (this->r_bytes - this->r_bytesZeroed);
 	char rBytesUnit[3];
 	strcpy(rBytesUnit, "B");
@@ -276,23 +274,32 @@ void Interface::Print()
 	}
 	unsigned long int printableTPackets = (this->t_packets - this->t_packetsZeroed);
 
-	mvwprintw(this->interfaceRow->win, 1, 1,
-			"%*s | %10lu %2s | %9lu | %10lu %2s | %9lu",
-			longest,
-			this->name,
-			printableRBytes,
-			rBytesUnit,
-			printableRPackets,
-			printableTBytes,
-			tBytesUnit,
-			printableTPackets);
+	if (!this->hidden)
+	{
+		werase(this->interfaceRow->win);
+		wborder(this->interfaceRow->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
+		if (this->active) {
+			wattron(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
+		}
 
-	if (this->active) {
-		wattroff(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
+		mvwprintw(this->interfaceRow->win, 1, 1,
+				"%*s | %10lu %2s | %9lu | %10lu %2s | %9lu",
+				longest,
+				this->name,
+				printableRBytes,
+				rBytesUnit,
+				printableRPackets,
+				printableTBytes,
+				tBytesUnit,
+				printableTPackets);
+
+		if (this->active) {
+			wattroff(this->interfaceRow->win, COLOR_PAIR(ACTIVE_COLOR));
+		}
+
+		wrefresh(this->interfaceRow->win);
 	}
-
-	wrefresh(this->interfaceRow->win);
 }
 
 void Interface::SetActive(bool active)
@@ -319,11 +326,22 @@ void Interface::UnZero()
 void Interface::setInterfaceRow(InterfaceRow *interfaceRow)
 {
 	this->interfaceRow = interfaceRow;
+	wclear(this->interfaceRow->win);
 }
 
 InterfaceRow * Interface::getInterfaceRow()
 {
 	return this->interfaceRow;
+}
+
+void Interface::RemoveFromUI()
+{
+	this->hidden = true;
+}
+
+bool Interface::IsHidden()
+{
+	return this->hidden;
 }
 
 InterfaceDetailWindow::InterfaceDetailWindow(int placementX, int placementY, int width, int height, Interface *interface)
@@ -332,6 +350,8 @@ InterfaceDetailWindow::InterfaceDetailWindow(int placementX, int placementY, int
 	this->placementY = placementY;
 	this->width = width;
 	this->height = height;
+
+	this->interface = interface;
 
 	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 
@@ -343,22 +363,54 @@ void InterfaceDetailWindow::Update()
 	werase(this->win);
 	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
-	wrefresh(this->win);
-	//char graphTypeString[graphTypeStringSize];
-	//for (int i = 0; i < GT_END; i++)
-	//{
-	//	getGraphTypeString((GraphType)i, graphTypeString);
-	//	if (i == activeItem)
-	//	{
-	//		wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-	//	}
-	//	mvwprintw(this->win, i + 1, 1, "%s", graphTypeString);
-	//	if (i == activeItem)
-	//	{
-	//		wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
-	//	}
-	//}
+	char interfaceDetailOptionString[interfaceDetailOptionStringSize];
+	for (int i = 0; i < IDO_END; ++i)
+	{
+		getInterfaceDetailOptionString((InterfaceDetailOption)i, interfaceDetailOptionString);
+		if (i == this->activeItem)
+		{
+			wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+		}
+		mvwprintw(this->win, i + 1, 1, "%s", interfaceDetailOptionString);
+		if (i == this->activeItem)
+		{
+			wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
+		}
+	}
 
-	//wrefresh(this->win);
+	wrefresh(this->win);
 }
 
+Interface * InterfaceDetailWindow::GetInterface()
+{
+	return this->interface;
+}
+
+int InterfaceDetailWindow::GetActiveItem()
+{
+	return this->activeItem;
+}
+
+void InterfaceDetailWindow::SetActiveItem(int activeItem)
+{
+	this->activeItem = activeItem;
+	this->activeItem = modulo(this->activeItem, IDO_END);
+
+	this->Update();
+}
+
+void InterfaceDetailWindow::IncrementActiveItem()
+{
+	this->activeItem++;
+	this->activeItem = modulo(this->activeItem, IDO_END);
+
+	this->Update();
+}
+
+void InterfaceDetailWindow::DecrementActiveItem()
+{
+	this->activeItem--;
+	this->activeItem = modulo(this->activeItem, IDO_END);
+
+	this->Update();
+}

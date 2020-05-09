@@ -4,12 +4,12 @@
 void getModeString(Mode mode, char *modeString)
 {
 	strcpy(modeString, modeStrings[mode]);
-};
+}
 
 void getGraphTypeString(GraphType gt, char *graphTypeString)
 {
 	strcpy(graphTypeString, graphTypeStrings[gt]);
-};
+}
 
 bool fileExists(const char *fileName)
 {
@@ -21,3 +21,9 @@ bool fileExists(const char *fileName)
 		return false;
 	}   
 }
+
+int modulo(int a, int b)
+{
+	return ((b + (a % b)) % b);
+}
+
