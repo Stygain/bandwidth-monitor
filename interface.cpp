@@ -329,7 +329,6 @@ void Interface::UnZero()
 void Interface::setInterfaceRow(InterfaceRow *interfaceRow)
 {
 	this->interfaceRow = interfaceRow;
-	wclear(this->interfaceRow->win);
 }
 
 InterfaceRow * Interface::getInterfaceRow()
