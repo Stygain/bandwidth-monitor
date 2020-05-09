@@ -81,13 +81,51 @@ int initializeInterfaceUi()
 {
 	int placement = 1;
 
+	// Ignore interfaces that are hidden
+	logger->Log("Thing\n");
+	logger->Log(std::to_string(settings->root["hiddenInterfaces"].isNull()));
+	logger->Log("\n");
+	logger->Log(std::to_string(settings->root["hiddenInterfaces"].isArray()));
+	logger->Log("\n");
+	Json::Value other;
+	other["asdf"] = "qwer";
+	logger->Log(settings->root["hiddenInterfaces"][0].asString().c_str());
+	//logger->Log(settings->root["hiddenInterfaces"]["vethc3890af"].asString().c_str());
+	logger->Log("\n");
+	logger->Log(std::to_string(settings->root["hiddenInterfaces"].size()));
+	logger->Log("\n");
+
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
-		InterfaceRow *interfaceRow = new InterfaceRow(0, placement, COLS, 3);
-		interfaceRows.push_back(interfaceRow);
-		interfaces[i]->setInterfaceRow(interfaceRow);
+		bool skip = false;
+		if (!settings->root["hiddenInterfaces"].isNull() && settings->root["hiddenInterfaces"].isArray())
+		{
+			for (size_t j = 0; j < settings->root["hiddenInterfaces"].size(); ++j)
+			{
+				//logger->Log("Comparing: ");
+				//logger->Log(settings->root["hiddenInterfaces"][j].asString().c_str());
+				//logger->Log(" to: ");
+				//logger->Log(interfaces[i]->name);
+				//logger->Log("\n");
+				if (strcmp(settings->root["hiddenInterfaces"][(int)j].asString().c_str(), interfaces[i]->name) == 0)
+				{
+					logger->Log("Skipping: ");
+					logger->Log(interfaces[i]->name);
+					logger->Log("\n");
+					interfaces[i]->RemoveFromUI();
+					skip = true;
+				}
+			}
+		}
 
-		placement += 3;
+		if (!skip)
+		{
+			InterfaceRow *interfaceRow = new InterfaceRow(0, placement, COLS, 3);
+			interfaceRows.push_back(interfaceRow);
+			interfaces[i]->setInterfaceRow(interfaceRow);
+
+			placement += 3;
+		}
 	}
 
 	for (size_t i = 0; i < interfaces.size(); ++i)
@@ -243,6 +281,8 @@ int main (int argc, char *argv[])
 	noecho();
 	keypad(stdscr, TRUE);
 
+	settings->InitializeSettings();
+
 	logger->StartLogfile();
 	logger->Log("Test log message\n");
 
@@ -250,6 +290,16 @@ int main (int argc, char *argv[])
 	int placement = initializeInterfaceUi();
 
 	interfaceHeader = new InterfaceHeader(longest);
+	// Change the sorting header based on the settings
+	logger->Log(settings->root["sortingColumn"].asString().c_str());
+	logger->Log("\n");
+	int sortByIndex = settings->root["sortingColumn"].asInt();
+	if (interfaceHeader != NULL)
+	{
+		interfaceHeader->sortingHeader = sortByIndex;
+		interfaceHeader->Print();
+	}
+
 	interfaceFooter = new InterfaceFooter(0, LINES-1, COLS, 1);
 	SelectionWindow *selectionWindow = NULL;
 
@@ -272,7 +322,18 @@ int main (int argc, char *argv[])
 	parseNetInfo();
 	updateScreen();
 
-	settings->InitializeSettings();
+	// Zero on start if settings say so
+	logger->Log(settings->root["zeroOnStart"].asString().c_str());
+	logger->Log("\n");
+	int zeroOnStart = settings->root["zeroOnStart"].asInt();
+	if (zeroOnStart)
+	{
+		for (size_t i = 0; i < interfaces.size(); ++i)
+		{
+			interfaces[i]->Zero();
+			interfaces[i]->Print();
+		}
+	}
 
 	logger->Log(std::to_string(COLS));
 	logger->Log("\n");
@@ -664,7 +725,14 @@ int main (int argc, char *argv[])
 						}
 						else if (activeIdo = IDO_HIDE)
 						{
-							settings->root["hiddenInterfaces"].append(activeInterface->name);
+							if (settings->root["hiddenInterfaces"][0].isNull())
+							{
+								settings->root["hiddenInterfaces"][0] = activeInterface->name;
+							}
+							else
+							{
+								settings->root["hiddenInterfaces"].append(activeInterface->name);
+							}
 							settings->SaveSettings();
 
 							mode = MODE_NORMAL;

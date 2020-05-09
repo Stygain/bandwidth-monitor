@@ -205,7 +205,10 @@ Interface::~Interface()
 
 void Interface::Refresh()
 {
-	wrefresh(this->interfaceRow->win);
+	if (!this->hidden)
+	{
+		wrefresh(this->interfaceRow->win);
+	}
 }
 
 void Interface::Update(unsigned long int r_bytes,
