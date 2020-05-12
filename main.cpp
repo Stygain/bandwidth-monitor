@@ -407,7 +407,11 @@ int main (int argc, char *argv[])
 				logger->Log("\n");
 
 				clear();
+
 				interfaceFooter->Resize(0, LINES-1, COLS, 1);
+
+				graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+				graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
 			}
 			if (ch == (int)'q')
 			{
@@ -444,7 +448,6 @@ int main (int argc, char *argv[])
 						delete selectionWindow;
 						selectionWindow = NULL;
 					}
-					//graphs[graphIndex]->Update();
 				}
 				else if (mode == MODE_INTERFACE_DETAIL)
 				{
@@ -797,7 +800,6 @@ int main (int argc, char *argv[])
 								logger->Log(std::to_string(index) + "\n");
 								
 								// Move each interface up one row
-								// TODO fix this, doesn't account for already hidden interfaces
 								int interfaceRowIndex = ifr_index;
 								if (index != interfaces.size())
 								{

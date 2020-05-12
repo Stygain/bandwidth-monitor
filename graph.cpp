@@ -125,7 +125,16 @@ void GraphDataColumn::Clear()
 
 int GraphDataColumn::GetValue()
 {
+	extern Logger *logger;
+	logger->Log("Value to be gotten: ");
+	logger->Log(std::to_string(this->value));
+	logger->Log("\n");
 	return this->value;
+}
+
+void GraphDataColumn::SetValue(int newValue)
+{
+	this->value = newValue;
 }
 
 
@@ -184,6 +193,19 @@ GraphTitle::GraphTitle(GraphType graphType, int placementX, int placementY, int 
 	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 
 	this->UpdateGraphType(graphType);
+}
+
+void GraphTitle::Resize(int placementX, int placementY, int width, int height)
+{
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	wresize(this->win, this->height, this->width);
+	mvwin(this->win, this->placementY, this->placementX);
+
+	this->Update();
 }
 
 void GraphTitle::Update()
@@ -247,6 +269,19 @@ GraphMaxItem::GraphMaxItem(int placementX, int placementY, int width, int height
 	wrefresh(this->win);
 }
 
+void GraphMaxItem::Resize(int placementX, int placementY, int width, int height)
+{
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	wresize(this->win, this->height, this->width);
+	mvwin(this->win, this->placementY, this->placementX);
+
+	this->Update();
+}
+
 void GraphMaxItem::Update()
 {
 	werase(this->win);
@@ -273,8 +308,8 @@ Graph::Graph(GraphType graphType, int placementX, int placementY, int width, int
 	this->height = height;
 	this->interfaces = interfaces;
 
-	graphTitle = new GraphTitle(this->graphType, this->placementX + 1, this->placementY, this->width, 1, NULL);
-	graphMaxItem = new GraphMaxItem(this->placementX + 2, this->placementY + 1, 5, 1);
+	this->graphTitle = new GraphTitle(this->graphType, this->placementX + 1, this->placementY, this->width, 1, NULL);
+	this->graphMaxItem = new GraphMaxItem(this->placementX + 2, this->placementY + 1, 5, 1);
 
 	this->win = newwin(this->height, this->width, this->placementY + 1, this->placementX);
 	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -286,8 +321,8 @@ Graph::~Graph()
 {
 	gDataCols.clear();
 	gRows.clear();
-	delete graphTitle;
-	delete graphMaxItem;
+	delete this->graphTitle;
+	delete this->graphMaxItem;
 }
 
 void Graph::Create()
@@ -321,6 +356,85 @@ void Graph::Create()
 	wrefresh(this->win);
 }
 
+void Graph::Resize(int placementX, int placementY, int width, int height)
+{
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	this->graphTitle->Resize(this->placementX + 1, this->placementY, this->width, 1);
+	this->graphMaxItem->Resize(this->placementX + 2, this->placementY + 2, 5, 1);
+
+	//TODO update the rows and columns as well
+	int oldCols = this->numCols;
+	this->numCols = (this->width - 3);
+	std::vector<GraphDataColumn *> newCols;
+	for (int i = 0; i < this->numCols; i++)
+	{
+		newCols.push_back(new GraphDataColumn(this->graphType, this->interfaces, this->interface));
+	}
+
+	extern Logger *logger;
+	logger->Log("Old Width: ");
+	logger->Log(std::to_string(oldCols));
+	logger->Log("\n");
+	logger->Log("New Width: ");
+	logger->Log(std::to_string(this->numCols));
+	logger->Log("\n");
+	
+
+	int smallerCols = oldCols < this->numCols ? oldCols : this->numCols;
+	logger->Log("Smaller: ");
+	logger->Log(std::to_string(smallerCols));
+	logger->Log("\n");
+	for (int i = 1; i < smallerCols + 1; i++)
+	{
+		logger->Log("Indexing: ");
+		logger->Log(std::to_string(this->numCols - i));
+		logger->Log(" and: ");
+		logger->Log(std::to_string(oldCols - i));
+		logger->Log(" value: ");
+		logger->Log(std::to_string(this->gDataCols[oldCols - i]->GetValue()));
+		logger->Log("\n");
+		newCols[this->numCols - i]->SetValue(this->gDataCols[oldCols - i]->GetValue());
+	}
+	this->gDataCols.clear();
+	this->gDataCols = newCols;
+
+	for (size_t i = 0; i < (this->gDataCols.size() - 1); i++)
+	{
+		this->gDataCols[i]->SetNext(gDataCols[i+1]);
+	}
+
+	int oldRows = this->numRows;
+	this->numRows = (this->height - 2);
+	std::vector<GraphRow *> newRows;
+	for (int i = 0; i < this->numRows; i++)
+	{
+		newRows.push_back(
+			new GraphRow(
+				1,
+				(this->width - 3),
+				(this->placementX + 1),
+				(this->placementY + 1 + ((i * 1) + 1)),
+				(this->numRows - i - 1),
+				(this->numRows - 1)
+			)
+		);
+	}
+
+	this->gRows.clear();
+	this->gRows = newRows;
+
+	wresize(this->win, height, width);
+	mvwin(this->win, this->placementY + 1, this->placementX);
+
+	this->Update();
+
+	this->graphTitle->Update();
+}
+
 void Graph::Update()
 {
 	// Update the data
@@ -349,7 +463,9 @@ void Graph::Update()
 		gRows[i]->Update(&(this->gDataCols), max);
 	}
 
-	graphMaxItem->UpdateMaxItem(max);
+	this->graphMaxItem->UpdateMaxItem(max);
+
+	this->graphTitle->Update();
 
 	wrefresh(this->win);
 }
@@ -366,7 +482,7 @@ void Graph::Clear()
 		gRows[i]->Update(&(this->gDataCols), 2);
 	}
 
-	graphMaxItem->UpdateMaxItem(0);
+	this->graphMaxItem->UpdateMaxItem(0);
 
 	wrefresh(this->win);
 }
@@ -375,7 +491,7 @@ void Graph::UpdateGraphInterface(Interface *interface)
 {
 	this->interface = interface;
 
-	graphTitle->UpdateGraphInterface(interface);
+	this->graphTitle->UpdateGraphInterface(interface);
 
 	for (size_t i = 0; i < this->gDataCols.size(); i++)
 	{
@@ -388,7 +504,7 @@ void Graph::UpdateGraphInterface(Interface *interface)
 
 void Graph::setActive(bool active)
 {
-	graphTitle->setActive(active);
+	this->graphTitle->setActive(active);
 }
 
 GraphType Graph::GetGraphType()

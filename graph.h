@@ -8,6 +8,7 @@
 #include "interface.h"
 #include "utils.h"
 #include "colors.h"
+#include "logger.h"
 
 class GraphDataColumn
 {
@@ -23,6 +24,8 @@ class GraphDataColumn
 		void Clear();
 
 		int GetValue();
+
+		void SetValue(int newValue);
 
 
 	private:
@@ -64,6 +67,8 @@ class GraphTitle
 	public:
 		GraphTitle(GraphType graphType, int placementX, int placementY, int width, int height, Interface *interface);
 
+		void Resize(int placementX, int placementY, int width, int height);
+
 		void Update();
 
 		void UpdateGraphType(GraphType graphType);
@@ -92,6 +97,8 @@ class GraphMaxItem
 	public:
 		GraphMaxItem(int placementX, int placementY, int width, int height);
 
+		void Resize(int placementX, int placementY, int width, int height);
+
 		void Update();
 
 		void UpdateMaxItem(int max);
@@ -116,6 +123,8 @@ class Graph
 		~Graph();
 
 		void Create();
+
+		void Resize(int placementX, int placementY, int width, int height);
 
 		void Update();
 
