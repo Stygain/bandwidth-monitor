@@ -37,12 +37,20 @@ std::vector<Graph *> graphs;
 
 Interface *getMatchingInterface(char *ifname)
 {
-	for (size_t i = 0; i < interfaces.size(); ++i)
+	try
 	{
-		if (strcmp(interfaces[i]->name, ifname) == 0)
+		for (size_t i = 0; i < interfaces.size(); ++i)
 		{
-			return interfaces[i];
+			if (strcmp(interfaces[i]->name, ifname) == 0)
+			{
+				return interfaces[i];
+			}
 		}
+	}
+	catch (...)
+	{
+		logger->Log("Exception encountered\n");
+		return NULL;
 	}
 	return NULL;
 }
@@ -68,13 +76,30 @@ void initializeNetInfo()
 		int len = strlen(ifname);
 		if (len > longest)
 		{
-			longest = len + 1;
+			longest = len;
+		}
+	}
+
+	fclose(fp);
+
+
+	fp = fopen("/proc/net/dev", "r");
+	// skip first two lines
+	for (int i = 0; i < 2; i++) {
+		fgets(buf, 200, fp);
+	}
+
+	while (fgets(buf, 200, fp)) {
+		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
+				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+		int len = strlen(ifname);
+		if (len > longest)
+		{
+			longest = len;
 		}
 
 		interfaces.push_back(new Interface(ifname, longest));
 	}
-
-	fclose(fp);
 }
 
 int initializeInterfaceUi()
@@ -269,13 +294,9 @@ int translateInterfaceIndex(int index)
 		}
 		if (matchIndex == index)
 		{
-			logger->Log("Returning index: ");
-			logger->Log(std::to_string(i));
-			logger->Log("\n");
 			return i;
 		}
 	}
-	logger->Log("Returning index: -1\n");
 	return -1;
 }
 
@@ -817,6 +838,10 @@ int main (int argc, char *argv[])
 								// Delete the unneeded row
 								delete interfaceRows[interfaceRows.size()];
 								interfaceRows.erase(interfaceRows.end() - 1, interfaceRows.end());
+
+								// Resize the graphs
+								graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+								graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
 							}
 						}
 					}

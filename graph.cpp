@@ -126,9 +126,6 @@ void GraphDataColumn::Clear()
 int GraphDataColumn::GetValue()
 {
 	extern Logger *logger;
-	logger->Log("Value to be gotten: ");
-	logger->Log(std::to_string(this->value));
-	logger->Log("\n");
 	return this->value;
 }
 
