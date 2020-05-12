@@ -79,6 +79,7 @@ void initializeNetInfo()
 			longest = len;
 		}
 	}
+	longest++;
 
 	fclose(fp);
 
@@ -92,11 +93,6 @@ void initializeNetInfo()
 	while (fgets(buf, 200, fp)) {
 		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
 				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
-		int len = strlen(ifname);
-		if (len > longest)
-		{
-			longest = len;
-		}
 
 		interfaces.push_back(new Interface(ifname, longest));
 	}
