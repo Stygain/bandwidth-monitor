@@ -112,17 +112,10 @@ int InterfaceRow::GetHeight()
 
 
 
-Interface::Interface(char *name, int longest)
+Interface::Interface(char *name, int longest, bool wireless)
 {
 	this->longest = longest;
-	this->name = new char[strlen(name) + 1];
-	strcpy(this->name, name);
-}
-
-Interface::Interface(char *name, int longest, InterfaceRow * interfaceRow)
-{
-	this->longest = longest;
-	this->interfaceRow = interfaceRow;
+	this->wireless = wireless;
 	this->name = new char[strlen(name) + 1];
 	strcpy(this->name, name);
 }
@@ -142,6 +135,7 @@ void Interface::Refresh()
 
 void Interface::Update()
 {
+	extern Logger *logger;
 	FILE *fp = fopen("/proc/net/dev", "r");
 	char buf[200];
 	char ifname[20];
@@ -156,8 +150,9 @@ void Interface::Update()
 	}
 
 	while (fgets(buf, 200, fp)) {
-		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
+		sscanf(buf, "%s %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
 				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+		ifname[strlen(ifname) - 1] = '\0';
 
 		if (strcmp(ifname, this->name) == 0)
 		{
@@ -174,6 +169,25 @@ void Interface::Update()
 	}
 
 	fclose(fp);
+
+	char ifaceType[] = "/sys/class/net/";
+	strcat(ifaceType, this->name);
+	strcat(ifaceType, "/operstate");
+	fp = fopen(ifaceType, "r");
+
+	logger->Log("Iface file: ");
+	logger->Log(ifaceType);
+	logger->Log("\n");
+	if (fp != NULL)
+	{
+		fgets(buf, 200, fp);
+		sscanf(buf, "%s", this->operstate);
+		logger->Log("This operstate: ");
+		logger->Log(this->operstate);
+		logger->Log("\n");
+
+		fclose(fp);
+	}
 }
 
 void Interface::Print()
@@ -329,6 +343,8 @@ void InterfaceDetailWindow::Update()
 			wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
 		}
 	}
+	//// TODO get max width of IDO strings
+	//mvwprintw(this->win, 1, 25, "State: %s", this->interface->operstate);
 
 	wrefresh(this->win);
 }

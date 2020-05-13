@@ -6,6 +6,7 @@
 
 #include "utils.h"
 #include "colors.h"
+#include "logger.h"
 
 typedef enum
 {
@@ -81,9 +82,7 @@ class InterfaceRow
 class Interface
 {
 	public:
-		Interface(char *name, int longest);
-
-		Interface(char *name, int longest, InterfaceRow * interfaceRow);
+		Interface(char *name, int longest, bool wireless);
 
 		~Interface();
 
@@ -120,6 +119,8 @@ class Interface
 		unsigned long int t_packets;
 		unsigned long int t_packetsLast = 0;
 		unsigned long int t_packetsZeroed = 0;
+		char operstate[20];
+		bool wireless;
 
 	private:
 		InterfaceRow * interfaceRow = NULL;

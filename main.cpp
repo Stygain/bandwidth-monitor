@@ -58,13 +58,33 @@ Interface *getMatchingInterface(char *ifname)
 
 void initializeInterfaces()
 {
-	FILE *fp = fopen("/proc/net/dev", "r");
+	FILE *fp = fopen("/proc/net/wireless", "r");
 	char buf[200];
 	char ifname[20];
-	unsigned long int r_bytes;
-	unsigned long int t_bytes;
-	unsigned long int r_packets;
-	unsigned long int t_packets;
+	std::vector<char *> wirelessIfaceNames;
+	
+	if (fp != NULL)
+	{
+		// Skip first two lines
+		for (int i = 0; i < 2; i++) {
+			fgets(buf, 200, fp);
+		}
+
+		while (fgets(buf, 200, fp)) {
+			char *wirelessInterfaceName = new char[20];
+			sscanf(buf, "%s", wirelessInterfaceName);
+			wirelessInterfaceName[strlen(wirelessInterfaceName) - 1] = '\0';
+			wirelessIfaceNames.push_back(wirelessInterfaceName);
+		}
+	}
+	for (size_t i = 0; i < wirelessIfaceNames.size(); ++i)
+	{
+		logger->Log("Wireless interface name: ");
+		logger->Log(wirelessIfaceNames[i]);
+		logger->Log("\n");
+	}
+
+	fp = fopen("/proc/net/dev", "r");
 
 	// skip first two lines
 	for (int i = 0; i < 2; i++) {
@@ -72,8 +92,12 @@ void initializeInterfaces()
 	}
 
 	while (fgets(buf, 200, fp)) {
-		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
-				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+		sscanf(buf, "%s", ifname);
+		ifname[strlen(ifname) - 1] = '\0';
+		logger->Log("Found iface name: ");
+		logger->Log(ifname);
+		logger->Log("\n");
+
 		int len = strlen(ifname);
 		if (len > longest)
 		{
@@ -92,11 +116,23 @@ void initializeInterfaces()
 	}
 
 	while (fgets(buf, 200, fp)) {
-		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
-				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+		sscanf(buf, "%s", ifname);
+		ifname[strlen(ifname) - 1] = '\0';
 
-		interfaces.push_back(new Interface(ifname, longest));
+		for (size_t i = 0; i < wirelessIfaceNames.size(); ++i)
+		{
+			if (strcmp(ifname, wirelessIfaceNames[i]) == 0)
+			{
+				interfaces.push_back(new Interface(ifname, longest, 1));
+			}
+			else
+			{
+				interfaces.push_back(new Interface(ifname, longest, 0));
+			}
+		}
 	}
+
+	wirelessIfaceNames.clear();
 }
 
 int initializeInterfaceUI()
