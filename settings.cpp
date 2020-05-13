@@ -5,7 +5,13 @@ Settings *settings = new Settings();
 
 Settings::Settings()
 {
-	strcpy(this->settingsFileName, "~/.bwmon");
+	char *homedir;
+	if ((homedir = getenv("HOME")) == NULL) {
+		homedir = getpwuid(getuid())->pw_dir;
+	}
+	const char *filename = "/.bwmon";
+	strcat(homedir, filename);
+	strcpy(this->settingsFileName, homedir);
 
 	this->settingsFileExists = fileExists(this->settingsFileName);
 }
@@ -23,9 +29,9 @@ Settings::~Settings()
 
 void Settings::InitializeSettings()
 {
-	if (!this->settingsFileExists)
+	if (this->settingsFileExists)
 	{
-		std::ifstream settingsFile("test.json");
+		std::ifstream settingsFile(this->settingsFileName);
 
 		// Read the file
 		settingsFile >> this->root;
@@ -36,9 +42,10 @@ void Settings::InitializeSettings()
 	{
 		// Initialize the default settings locally
 		this->root["sortingColumn"] = -1;
-		this->root["zeroOnStart"] = 0;
+		this->root["zeroOnStart"] = 1;
 
 		// Call save
+		this->SaveSettings();
 	}
 }
 
@@ -46,7 +53,7 @@ void Settings::SaveSettings()
 {
 	extern Logger *logger;
 
-	std::ofstream settingsFile("test.json");
+	std::ofstream settingsFile(this->settingsFileName);
 
 	Json::StyledWriter writer;
 	logger->Log(writer.write(this->root).c_str());

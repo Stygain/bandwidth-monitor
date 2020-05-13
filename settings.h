@@ -7,6 +7,9 @@
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>
 #include <iostream>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include "interface.h"
 #include "logger.h"

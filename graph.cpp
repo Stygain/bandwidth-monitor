@@ -373,27 +373,27 @@ void Graph::Resize(int placementX, int placementY, int width, int height)
 	}
 
 	extern Logger *logger;
-	logger->Log("Old Width: ");
-	logger->Log(std::to_string(oldCols));
-	logger->Log("\n");
-	logger->Log("New Width: ");
-	logger->Log(std::to_string(this->numCols));
-	logger->Log("\n");
+	//logger->Log("Old Width: ");
+	//logger->Log(std::to_string(oldCols));
+	//logger->Log("\n");
+	//logger->Log("New Width: ");
+	//logger->Log(std::to_string(this->numCols));
+	//logger->Log("\n");
 	
 
 	int smallerCols = oldCols < this->numCols ? oldCols : this->numCols;
-	logger->Log("Smaller: ");
-	logger->Log(std::to_string(smallerCols));
-	logger->Log("\n");
+	//logger->Log("Smaller: ");
+	//logger->Log(std::to_string(smallerCols));
+	//logger->Log("\n");
 	for (int i = 1; i < smallerCols + 1; i++)
 	{
-		logger->Log("Indexing: ");
-		logger->Log(std::to_string(this->numCols - i));
-		logger->Log(" and: ");
-		logger->Log(std::to_string(oldCols - i));
-		logger->Log(" value: ");
-		logger->Log(std::to_string(this->gDataCols[oldCols - i]->GetValue()));
-		logger->Log("\n");
+		//logger->Log("Indexing: ");
+		//logger->Log(std::to_string(this->numCols - i));
+		//logger->Log(" and: ");
+		//logger->Log(std::to_string(oldCols - i));
+		//logger->Log(" value: ");
+		//logger->Log(std::to_string(this->gDataCols[oldCols - i]->GetValue()));
+		//logger->Log("\n");
 		newCols[this->numCols - i]->SetValue(this->gDataCols[oldCols - i]->GetValue());
 	}
 	this->gDataCols.clear();
