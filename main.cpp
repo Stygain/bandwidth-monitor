@@ -56,7 +56,7 @@ Interface *getMatchingInterface(char *ifname)
 	return NULL;
 }
 
-void initializeNetInfo()
+void initializeInterfaces()
 {
 	FILE *fp = fopen("/proc/net/dev", "r");
 	char buf[200];
@@ -99,23 +99,9 @@ void initializeNetInfo()
 	}
 }
 
-int initializeInterfaceUi()
+int initializeInterfaceUI()
 {
 	int placement = 1;
-
-	// Ignore interfaces that are hidden
-	logger->Log("Thing\n");
-	logger->Log(std::to_string(settings->root["hiddenInterfaces"].isNull()));
-	logger->Log("\n");
-	logger->Log(std::to_string(settings->root["hiddenInterfaces"].isArray()));
-	logger->Log("\n");
-	Json::Value other;
-	other["asdf"] = "qwer";
-	logger->Log(settings->root["hiddenInterfaces"][0].asString().c_str());
-	//logger->Log(settings->root["hiddenInterfaces"]["vethc3890af"].asString().c_str());
-	logger->Log("\n");
-	logger->Log(std::to_string(settings->root["hiddenInterfaces"].size()));
-	logger->Log("\n");
 
 	for (size_t i = 0; i < interfaces.size(); ++i)
 	{
@@ -124,14 +110,9 @@ int initializeInterfaceUi()
 		{
 			for (size_t j = 0; j < settings->root["hiddenInterfaces"].size(); ++j)
 			{
-				//logger->Log("Comparing: ");
-				//logger->Log(settings->root["hiddenInterfaces"][j].asString().c_str());
-				//logger->Log(" to: ");
-				//logger->Log(interfaces[i]->name);
-				//logger->Log("\n");
 				if (strcmp(settings->root["hiddenInterfaces"][(int)j].asString().c_str(), interfaces[i]->name) == 0)
 				{
-					logger->Log("Skipping: ");
+					logger->Log("Skipping hidden interface: ");
 					logger->Log(interfaces[i]->name);
 					logger->Log("\n");
 					interfaces[i]->RemoveFromUI();
@@ -160,7 +141,7 @@ int initializeInterfaceUi()
 	return placement;
 }
 
-void updateScreen()
+void updateInterfaceUI()
 {
 	interfaceHeader->Print();
 	for (size_t i = 0; i < interfaces.size(); ++i)
@@ -248,7 +229,7 @@ void sortInterfaces(InterfaceHeaderContent column)
 		}
 	}
 
-	updateScreen();
+	updateInterfaceUI();
 }
 
 int translateInterfaceIndex(int index)
@@ -300,8 +281,8 @@ int main (int argc, char *argv[])
 	logger->StartLogfile();
 	logger->Log("Test log message\n");
 
-	initializeNetInfo();
-	int placement = initializeInterfaceUi();
+	initializeInterfaces();
+	int placement = initializeInterfaceUI();
 
 	interfaceHeader = new InterfaceHeader(longest);
 	// Change the sorting header based on the settings
@@ -338,7 +319,7 @@ int main (int argc, char *argv[])
 	{
 		interfaces[i]->Update();
 	}
-	updateScreen();
+	updateInterfaceUI();
 
 	// Zero on start if settings say so
 	logger->Log(settings->root["zeroOnStart"].asString().c_str());
@@ -368,7 +349,7 @@ int main (int argc, char *argv[])
 			{
 				interfaces[i]->Update();
 			}
-			updateScreen();
+			updateInterfaceUI();
 
 			for (size_t i = 0; i < graphs.size(); i++)
 			{
@@ -807,7 +788,7 @@ int main (int argc, char *argv[])
 										}
 									}
 								}
-								updateScreen();
+								updateInterfaceUI();
 
 								// Delete the unneeded row
 								delete interfaceRows[interfaceRows.size()];
