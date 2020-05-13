@@ -26,8 +26,6 @@ const char interfaceDetailOptionStrings[5][interfaceDetailOptionStringSize] =
 void getInterfaceDetailOptionString(InterfaceDetailOption interfaceDetailOption, char *interfaceDetailOptionString);
 
 
-
-
 class InterfaceHeader
 {
 	public:
@@ -91,10 +89,7 @@ class Interface
 
 		void Refresh();
 
-		void Update(unsigned long int r_bytes,
-				unsigned long int t_bytes,
-				unsigned long int r_packets,
-				unsigned long int t_packets);
+		void Update();
 
 		void Print();
 

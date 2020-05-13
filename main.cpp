@@ -160,34 +160,34 @@ int initializeInterfaceUi()
 	return placement;
 }
 
-bool parseNetInfo()
-{
-	FILE *fp = fopen("/proc/net/dev", "r");
-	char buf[200];
-	char ifname[20];
-	unsigned long int r_bytes;
-	unsigned long int t_bytes;
-	unsigned long int r_packets;
-	unsigned long int t_packets;
-
-	// skip first two lines
-	for (int i = 0; i < 2; i++) {
-		fgets(buf, 200, fp);
-	}
-
-	while (fgets(buf, 200, fp)) {
-		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
-				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
-
-		Interface * iface = getMatchingInterface(ifname);
-		if (iface != NULL)
-		{
-			iface->Update(r_bytes, t_bytes, r_packets, t_packets);
-		}
-	}
-
-	fclose(fp);
-}
+//bool parseNetInfo()
+//{
+//	FILE *fp = fopen("/proc/net/dev", "r");
+//	char buf[200];
+//	char ifname[20];
+//	unsigned long int r_bytes;
+//	unsigned long int t_bytes;
+//	unsigned long int r_packets;
+//	unsigned long int t_packets;
+//
+//	// skip first two lines
+//	for (int i = 0; i < 2; i++) {
+//		fgets(buf, 200, fp);
+//	}
+//
+//	while (fgets(buf, 200, fp)) {
+//		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
+//				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+//
+//		Interface * iface = getMatchingInterface(ifname);
+//		if (iface != NULL)
+//		{
+//			iface->Update(r_bytes, t_bytes, r_packets, t_packets);
+//		}
+//	}
+//
+//	fclose(fp);
+//}
 
 void updateScreen()
 {
@@ -363,7 +363,10 @@ int main (int argc, char *argv[])
 	double diff;
 	double lastDiff;
 
-	parseNetInfo();
+	for (size_t i = 0; i < interfaces.size(); i++)
+	{
+		interfaces[i]->Update();
+	}
 	updateScreen();
 
 	// Zero on start if settings say so
@@ -390,7 +393,10 @@ int main (int argc, char *argv[])
 		diff = difftime(now, lastTime);
 		if (diff > 1)
 		{
-			parseNetInfo();
+			for (size_t i = 0; i < interfaces.size(); i++)
+			{
+				interfaces[i]->Update();
+			}
 			updateScreen();
 
 			for (size_t i = 0; i < graphs.size(); i++)

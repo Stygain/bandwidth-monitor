@@ -140,19 +140,40 @@ void Interface::Refresh()
 	}
 }
 
-void Interface::Update(unsigned long int r_bytes,
-		unsigned long int t_bytes,
-		unsigned long int r_packets,
-		unsigned long int t_packets)
+void Interface::Update()
 {
-	this->r_bytesLast = this->r_bytes;
-	this->r_bytes = r_bytes;
-	this->t_bytesLast = this->t_bytes;
-	this->t_bytes = t_bytes;
-	this->r_packetsLast = this->r_packets;
-	this->r_packets = r_packets;
-	this->t_packetsLast = this->t_packets;
-	this->t_packets = t_packets;
+	FILE *fp = fopen("/proc/net/dev", "r");
+	char buf[200];
+	char ifname[20];
+	unsigned long int r_bytes;
+	unsigned long int t_bytes;
+	unsigned long int r_packets;
+	unsigned long int t_packets;
+
+	// skip first two lines
+	for (int i = 0; i < 2; i++) {
+		fgets(buf, 200, fp);
+	}
+
+	while (fgets(buf, 200, fp)) {
+		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
+				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+
+		if (strcmp(ifname, this->name) == 0)
+		{
+			this->r_bytesLast = this->r_bytes;
+			this->r_bytes = r_bytes;
+			this->t_bytesLast = this->t_bytes;
+			this->t_bytes = t_bytes;
+			this->r_packetsLast = this->r_packets;
+			this->r_packets = r_packets;
+			this->t_packetsLast = this->t_packets;
+			this->t_packets = t_packets;
+			break;
+		}
+	}
+
+	fclose(fp);
 }
 
 void Interface::Print()
