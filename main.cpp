@@ -160,35 +160,6 @@ int initializeInterfaceUi()
 	return placement;
 }
 
-//bool parseNetInfo()
-//{
-//	FILE *fp = fopen("/proc/net/dev", "r");
-//	char buf[200];
-//	char ifname[20];
-//	unsigned long int r_bytes;
-//	unsigned long int t_bytes;
-//	unsigned long int r_packets;
-//	unsigned long int t_packets;
-//
-//	// skip first two lines
-//	for (int i = 0; i < 2; i++) {
-//		fgets(buf, 200, fp);
-//	}
-//
-//	while (fgets(buf, 200, fp)) {
-//		sscanf(buf, "%[^:]: %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
-//				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
-//
-//		Interface * iface = getMatchingInterface(ifname);
-//		if (iface != NULL)
-//		{
-//			iface->Update(r_bytes, t_bytes, r_packets, t_packets);
-//		}
-//	}
-//
-//	fclose(fp);
-//}
-
 void updateScreen()
 {
 	interfaceHeader->Print();
