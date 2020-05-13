@@ -1,5 +1,5 @@
-FILES = main.cpp graph.cpp interface.cpp utils.cpp logger.cpp settings.cpp selectionWindow.cpp
-OBJECTS = main.o graph.o interface.o utils.o logger.o settings.o selectionWindow.o
+FILES = main.cpp graph.cpp interface.cpp utils.cpp logger.cpp settings.cpp selectionWindow.cpp footer.cpp
+OBJECTS = main.o graph.o interface.o utils.o logger.o settings.o selectionWindow.o footer.o
 EXECUTABLE = bandwidth-monitor
 
 # -g compiles debug mode TODO remove

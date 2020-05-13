@@ -27,31 +27,6 @@ void getInterfaceDetailOptionString(InterfaceDetailOption interfaceDetailOption,
 
 
 
-class InterfaceFooter
-{
-	public:
-		InterfaceFooter(int placementX, int placementY, int width, int height);
-
-		~InterfaceFooter();
-
-		void Resize(int placementX, int placementY, int width, int height);
-
-		void UpdateMode(Mode mode);
-
-		void Print();
-
-	public:
-		WINDOW *win;
-
-	private:
-		Mode mode = MODE_NORMAL;
-
-		int placementX;
-		int placementY;
-		int width;
-		int height;
-};
-
 
 class InterfaceHeader
 {
@@ -103,6 +78,8 @@ class InterfaceRow
 };
 
 
+// /sys/class/net/iface/type -> /usr/include/linux/if_arp.h
+// /sys/class/net/iface/operstate
 class Interface
 {
 	public:
