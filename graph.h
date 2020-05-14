@@ -65,7 +65,9 @@ class GraphRow
 class GraphTitle
 {
 	public:
-		GraphTitle(GraphType graphType, int placementX, int placementY, int width, int height, Interface *interface);
+		GraphTitle(GraphType graphType, Interface *interface);
+
+		void Create(int placementX, int placementY, int width, int height);
 
 		void Resize(int placementX, int placementY, int width, int height);
 
@@ -95,7 +97,9 @@ class GraphTitle
 class GraphMaxItem
 {
 	public:
-		GraphMaxItem(int placementX, int placementY, int width, int height);
+		GraphMaxItem();
+
+		void Create(int placementX, int placementY, int width, int height);
 
 		void Resize(int placementX, int placementY, int width, int height);
 
@@ -118,11 +122,11 @@ class GraphMaxItem
 class Graph
 {
 	public:
-		Graph(GraphType graphType, int placementX, int placementY, int width, int height, std::vector<Interface *> *interfaces);
+		Graph(GraphType graphType, std::vector<Interface *> *interfaces);
 
 		~Graph();
 
-		void Create();
+		void Create(int placementX, int placementY, int width, int height);
 
 		void Resize(int placementX, int placementY, int width, int height);
 

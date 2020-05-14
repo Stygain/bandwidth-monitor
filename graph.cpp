@@ -190,18 +190,23 @@ void GraphRow::Update(std::vector<GraphDataColumn *> *gDataCols, int max)
 }
 
 
-GraphTitle::GraphTitle(GraphType graphType, int placementX, int placementY, int width, int height, Interface *interface)
+GraphTitle::GraphTitle(GraphType graphType, Interface *interface)
+{
+	this->interface = interface;
+
+	this->graphType = graphType;
+}
+
+void GraphTitle::Create(int placementX, int placementY, int width, int height)
 {
 	this->placementX = placementX;
 	this->placementY = placementY;
 	this->width = width;
 	this->height = height;
 
-	this->interface = interface;
-
 	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
 
-	this->UpdateGraphType(graphType);
+	this->Update();
 }
 
 void GraphTitle::Resize(int placementX, int placementY, int width, int height)
@@ -266,7 +271,11 @@ void GraphTitle::setActive(bool active)
 }
 
 
-GraphMaxItem::GraphMaxItem(int placementX, int placementY, int width, int height)
+GraphMaxItem::GraphMaxItem()
+{
+}
+
+void GraphMaxItem::Create(int placementX, int placementY, int width, int height)
 {
 	this->placementX = placementX;
 	this->placementY = placementY;
@@ -308,22 +317,13 @@ void GraphMaxItem::UpdateMaxItem(int max)
 }
 
 
-Graph::Graph(GraphType graphType, int placementX, int placementY, int width, int height, std::vector<Interface *> *interfaces)
+Graph::Graph(GraphType graphType, std::vector<Interface *> *interfaces)
 {
 	this->graphType = graphType;
-	this->placementX = placementX;
-	this->placementY = placementY;
-	this->width = width;
-	this->height = height;
 	this->interfaces = interfaces;
 
-	this->graphTitle = new GraphTitle(this->graphType, this->placementX + 1, this->placementY, this->width, 1, NULL);
-	this->graphMaxItem = new GraphMaxItem(this->placementX + 2, this->placementY + 1, 5, 1);
-
-	this->win = newwin(this->height, this->width, this->placementY + 1, this->placementX);
-	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
-
-	wrefresh(this->win);
+	this->graphTitle = new GraphTitle(this->graphType, NULL);
+	this->graphMaxItem = new GraphMaxItem();
 }
 
 Graph::~Graph()
@@ -334,8 +334,19 @@ Graph::~Graph()
 	delete this->graphMaxItem;
 }
 
-void Graph::Create()
+void Graph::Create(int placementX, int placementY, int width, int height)
 {
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	this->graphTitle->Create(this->placementX + 1, this->placementY, this->width, 1);
+	this->graphMaxItem->Create(this->placementX + 2, this->placementY + 1, 5, 1);
+
+	this->win = newwin(this->height, this->width, this->placementY + 1, this->placementX);
+	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
+
 	this->numCols = (this->width - 3);
 	for (int i = 0; i < this->numCols; i++)
 	{
