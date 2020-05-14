@@ -440,6 +440,11 @@ void Graph::Update()
 		gDataCols[i]->Update();
 	}
 
+	this->Print();
+}
+
+void Graph::Print()
+{
 	// Scan the data columns for the maximum
 	int max = 0;
 	for (size_t i = 0; i < this->gDataCols.size(); i++)

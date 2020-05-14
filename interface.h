@@ -121,6 +121,9 @@ class Interface
 		unsigned long int t_packetsZeroed = 0;
 		char operstate[20];
 		bool wireless;
+		int linkQual;
+		int levelQual;
+		int noiseQual;
 
 	private:
 		InterfaceRow * interfaceRow = NULL;

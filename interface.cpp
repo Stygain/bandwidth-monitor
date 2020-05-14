@@ -188,6 +188,45 @@ void Interface::Update()
 
 		fclose(fp);
 	}
+
+	if (this->wireless)
+	{
+		fp = fopen("/proc/net/wireless", "r");
+
+		if (fp != NULL)
+		{
+			logger->Log("In /proc/net/wireless\n");
+			// Skip first two lines
+			for (int i = 0; i < 2; i++) {
+				fgets(buf, 200, fp);
+			}
+
+			int linkQual;
+			int levelQual;
+			int noiseQual;
+
+			char wirelessInterfaceName[20];
+			while (fgets(buf, 200, fp)) {
+				sscanf(buf, "%s %*lu %d. %d. %d",
+						wirelessInterfaceName, &linkQual, &levelQual, &noiseQual);
+				wirelessInterfaceName[strlen(wirelessInterfaceName) - 1] = '\0';
+
+				if (strcmp(wirelessInterfaceName, this->name) == 0)
+				{
+					logger->Log("Read: ");
+					logger->Log(std::to_string(linkQual));
+					logger->Log(", ");
+					logger->Log(std::to_string(levelQual));
+					logger->Log(", ");
+					logger->Log(std::to_string(noiseQual));
+					logger->Log("\n");
+					this->linkQual = linkQual;
+					this->levelQual = levelQual;
+					this->noiseQual = noiseQual;
+				}
+			}
+		}
+	}
 }
 
 void Interface::Print()
@@ -343,8 +382,15 @@ void InterfaceDetailWindow::Update()
 			wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
 		}
 	}
-	//// TODO get max width of IDO strings
-	//mvwprintw(this->win, 1, 25, "State: %s", this->interface->operstate);
+	// TODO get max width of IDO strings
+	mvwprintw(this->win, 1, 25, "State: %s", this->interface->operstate);
+
+	if (this->interface->wireless)
+	{
+		mvwprintw(this->win, 2, 25, "Link Quality: %d", this->interface->linkQual);
+		mvwprintw(this->win, 3, 25, "Level Quality: %d", this->interface->levelQual);
+		mvwprintw(this->win, 4, 25, "Noise Quality: %d", this->interface->noiseQual);
+	}
 
 	wrefresh(this->win);
 }

@@ -460,6 +460,11 @@ int main (int argc, char *argv[])
 						delete selectionWindow;
 						selectionWindow = NULL;
 					}
+
+					for (size_t i = 0; i < graphs.size(); i++)
+					{
+						graphs[i]->Print();
+					}
 				}
 				else if (mode == MODE_INTERFACE_DETAIL)
 				{
@@ -472,6 +477,8 @@ int main (int argc, char *argv[])
 						delete interfaceDetailWindow;
 						interfaceDetailWindow = NULL;
 					}
+
+					updateInterfaceUI();
 				}
 				else
 				{

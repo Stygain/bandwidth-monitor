@@ -128,6 +128,8 @@ class Graph
 
 		void Update();
 
+		void Print();
+
 		void Clear();
 
 		void UpdateGraphInterface(Interface *interface);
