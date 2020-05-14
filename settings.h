@@ -26,7 +26,7 @@ class Settings
 
 		~Settings();
 
-		void InitializeSettings();
+		void Initialize();
 
 		void SaveSettings();
 

@@ -27,7 +27,7 @@ Settings::~Settings()
 {
 }
 
-void Settings::InitializeSettings()
+void Settings::Initialize()
 {
 	if (this->settingsFileExists)
 	{
