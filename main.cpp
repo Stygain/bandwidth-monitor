@@ -400,10 +400,11 @@ GraphMode resizeUI()
 		case GM_TWO_WIDE:
 		{
 			int startXPos = 0;
+			int startYPos = (interfaceRows.size() * 3) + 1;
 			int width = (int)(COLS / 2) - 1;
-			int height = (LINES - ((interfaceRows.size() * 3) + 1) - 2);
-			graphs[0]->Resize(startXPos, (interfaceRows.size() * 3) + 1, width, height);
-			graphs[1]->Resize(startXPos + width, (interfaceRows.size() * 3) + 1, width, height);
+			int height = (LINES - startYPos - 2);
+			graphs[0]->Resize(startXPos, startYPos, width, height);
+			graphs[1]->Resize(startXPos + width, startYPos, width, height);
 			if (gmLast != gm)
 			{
 			}
@@ -412,10 +413,11 @@ GraphMode resizeUI()
 		case GM_TWO_TALL:
 		{
 			int startYPos = (interfaceRows.size() * 3) + 1;
+			int startXPos = 0;
 			int height = (int)((LINES - startYPos) / 2);
 			int width = COLS;
-			graphs[0]->Resize(0, startYPos, width, height);
-			graphs[1]->Resize(0, startYPos + height, width, height);
+			graphs[0]->Resize(startXPos, startYPos, width, height);
+			graphs[1]->Resize(startXPos, startYPos + height, width, height);
 			if (gmLast != gm)
 			{
 			}
@@ -423,6 +425,14 @@ GraphMode resizeUI()
 		}
 		case GM_FOUR_WIDE:
 		{
+			int startXPos = 0;
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int width = (int)(COLS / 4) - 1;
+			int height = LINES - startYPos - 2;
+			graphs[0]->Resize(startXPos, startYPos, width, height);
+			graphs[1]->Resize(startXPos + width + 1, startYPos, width, height);
+			graphs[2]->Resize(startXPos + (width * 2) + 1, startYPos, width, height);
+			graphs[3]->Resize(startXPos + (width * 3) + 1, startYPos, width, height);
 			if (gmLast != gm)
 			{
 			}
@@ -430,6 +440,14 @@ GraphMode resizeUI()
 		}
 		case GM_FOUR_TALL:
 		{
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int startXPos = 0;
+			int height = (int)((LINES - startYPos) / 4) - 1;
+			int width = COLS;
+			graphs[0]->Resize(startXPos, startYPos, width, height);
+			graphs[1]->Resize(startXPos, startYPos + height + 1, width, height);
+			graphs[2]->Resize(startXPos, startYPos + (height * 2) + 1, width, height);
+			graphs[3]->Resize(startXPos, startYPos + (height * 3) + 1, width, height);
 			if (gmLast != gm)
 			{
 			}
@@ -681,32 +699,55 @@ int main (int argc, char *argv[])
 	{
 		case GM_ONE:
 		{
+			int startXPos = 0;
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int width = COLS;
+			int height = (LINES - startYPos - 2);
+			graphs[0]->Create(startXPos, startYPos, width, height);
 			break;
 		}
 		case GM_TWO_WIDE:
 		{
 			int startXPos = 0;
+			int startYPos = (interfaceRows.size() * 3) + 1;
 			int width = (int)(COLS / 2) - 1;
-			int height = (LINES - ((interfaceRows.size() * 3) + 1) - 2);
-			graphs[0]->Create(startXPos, (interfaceRows.size() * 3) + 1, width, height);
-			graphs[1]->Create(startXPos + width, (interfaceRows.size() * 3) + 1, width, height);
+			int height = LINES - startYPos - 2;
+			graphs[0]->Create(startXPos, startYPos, width, height);
+			graphs[1]->Create(startXPos + width, startYPos, width, height);
 			break;
 		}
 		case GM_TWO_TALL:
 		{
 			int startYPos = (interfaceRows.size() * 3) + 1;
+			int startXPos = 0;
 			int height = (int)((LINES - startYPos) / 2) - 1;
 			int width = COLS;
-			graphs[0]->Create(0, startYPos, width, height);
-			graphs[1]->Create(0, startYPos + height + 1, width, height);
+			graphs[0]->Create(startXPos, startYPos, width, height);
+			graphs[1]->Create(startXPos, startYPos + height + 1, width, height);
 			break;
 		}
 		case GM_FOUR_WIDE:
 		{
+			int startXPos = 0;
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int width = (int)(COLS / 4) - 1;
+			int height = LINES - startYPos - 2;
+			graphs[0]->Create(startXPos, startYPos, width, height);
+			graphs[1]->Create(startXPos + width + 1, startYPos, width, height);
+			graphs[2]->Create(startXPos + (width * 2) + 1, startYPos, width, height);
+			graphs[3]->Create(startXPos + (width * 3) + 1, startYPos, width, height);
 			break;
 		}
 		case GM_FOUR_TALL:
 		{
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int startXPos = 0;
+			int height = (int)((LINES - startYPos) / 4) - 1;
+			int width = COLS;
+			graphs[0]->Create(startXPos, startYPos, width, height);
+			graphs[1]->Create(startXPos, startYPos + height + 1, width, height);
+			graphs[2]->Create(startXPos, startYPos + (height * 2) + 1, width, height);
+			graphs[3]->Create(startXPos, startYPos + (height * 3) + 1, width, height);
 			break;
 		}
 		case GM_TWO_WIDE_TWO_TALL:
