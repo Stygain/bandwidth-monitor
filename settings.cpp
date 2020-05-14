@@ -45,6 +45,8 @@ void Settings::InitializeSettings()
 		this->root["zeroOnStart"] = 1;
 		this->root["graphs"][0] = 0;
 		this->root["graphs"][1] = 1;
+		this->root["graphs"][2] = 2;
+		this->root["graphs"][3] = 3;
 
 		// Call save
 		this->SaveSettings();

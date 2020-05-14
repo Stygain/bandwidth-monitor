@@ -287,12 +287,56 @@ int translateInterfaceIndex(int index)
 
 void resizeUI()
 {
+	logger->Log("New width: ");
+	logger->Log(std::to_string(COLS));
+	logger->Log("\n");
+
+	logger->Log("New height: ");
+	logger->Log(std::to_string(LINES));
+	logger->Log("\n");
+
 	clear();
 
 	footer->Resize(0, LINES-1, COLS, 1);
 
 	graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
 	graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+
+	// If the screen is tall enough, add in the other graphs
+	if ((LINES - ((interfaceRows.size() * 3) + 1) - 2) > (GRAPH_MIN_HEIGHT * 4))
+	{
+		logger->Log("Tall enough for four\n");
+	}
+	else if ((LINES - ((interfaceRows.size() * 3) + 1) - 2) > (GRAPH_MIN_HEIGHT * 2))
+	{
+		logger->Log("Tall enough for two\n");
+	}
+	else
+	{
+		logger->Log("Tall enough for one\n");
+	}
+	if (COLS > (GRAPH_MIN_WIDTH * 4))
+	{
+		// Or if the screen is wide enough add the other graphs
+		logger->Log("Wide enough for four\n");
+	}
+	else if (COLS > (GRAPH_MIN_WIDTH * 2))
+	{
+		// Or if the screen is wide enough add the other graphs
+		logger->Log("Wide enough for two ");
+		logger->Log(std::to_string(COLS));
+		logger->Log(":");
+		logger->Log(std::to_string(GRAPH_MIN_WIDTH*2));
+		logger->Log("\n");
+	}
+	else
+	{
+		logger->Log("Wide enough for one ");
+		logger->Log(std::to_string(COLS));
+		logger->Log(":");
+		logger->Log(std::to_string(GRAPH_MIN_WIDTH*2));
+		logger->Log("\n");
+	}
 }
 
 
@@ -346,6 +390,8 @@ int main (int argc, char *argv[])
 
 	GraphType gt0 = (GraphType)settings->root["graphs"][0].asInt();
 	GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
+	GraphType gt2 = (GraphType)settings->root["graphs"][2].asInt();
+	GraphType gt3 = (GraphType)settings->root["graphs"][3].asInt();
 	graphs.push_back(new Graph(gt0, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
 	graphs.push_back(new Graph(gt1, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
 
@@ -496,14 +542,20 @@ int main (int argc, char *argv[])
 						if (activeIndex != -1)
 						{
 							interfaceIndex = translateInterfaceIndex(activeIndex);
-							interfaces[interfaceIndex]->SetActive(false);
-							interfaces[interfaceIndex]->Print();
+							if (interfaceIndex != -1)
+							{
+								interfaces[interfaceIndex]->SetActive(false);
+								interfaces[interfaceIndex]->Print();
+							}
 						}
 						activeIndex += 1;
 						activeIndex = modulo(activeIndex, (int)interfaceRows.size());
 						interfaceIndex = translateInterfaceIndex(activeIndex);
-						interfaces[interfaceIndex]->SetActive(true);
-						interfaces[interfaceIndex]->Print();
+						if (interfaceIndex != -1)
+						{
+							interfaces[interfaceIndex]->SetActive(true);
+							interfaces[interfaceIndex]->Print();
+						}
 					}
 					else if (mode == MODE_GRAPH_SELECTION)
 					{
@@ -531,8 +583,11 @@ int main (int argc, char *argv[])
 						if (activeIndex != -1)
 						{
 							interfaceIndex = translateInterfaceIndex(activeIndex);
-							interfaces[interfaceIndex]->SetActive(false);
-							interfaces[interfaceIndex]->Print();
+							if (interfaceIndex != -1)
+							{
+								interfaces[interfaceIndex]->SetActive(false);
+								interfaces[interfaceIndex]->Print();
+							}
 						}
 						else
 						{
@@ -541,8 +596,11 @@ int main (int argc, char *argv[])
 						activeIndex -= 1;
 						activeIndex = modulo(activeIndex, (int)interfaceRows.size());
 						interfaceIndex = translateInterfaceIndex(activeIndex);
-						interfaces[interfaceIndex]->SetActive(true);
-						interfaces[interfaceIndex]->Print();
+						if (interfaceIndex != -1)
+						{
+							interfaces[interfaceIndex]->SetActive(true);
+							interfaces[interfaceIndex]->Print();
+						}
 					}
 					else if (mode == MODE_GRAPH_SELECTION)
 					{
@@ -584,12 +642,15 @@ int main (int argc, char *argv[])
 					}
 
 					interfaceIndex = translateInterfaceIndex(activeIndex);
-					interfaces[interfaceIndex]->SetActive(false);
-					interfaces[interfaceIndex]->Print();
-
-					for (size_t i = 0; i < graphs.size(); i++)
+					if (interfaceIndex != -1)
 					{
-						graphs[i]->UpdateGraphInterface(NULL);
+						interfaces[interfaceIndex]->SetActive(false);
+						interfaces[interfaceIndex]->Print();
+
+						for (size_t i = 0; i < graphs.size(); i++)
+						{
+							graphs[i]->UpdateGraphInterface(NULL);
+						}
 					}
 
 					activeIndex = -1;
@@ -786,72 +847,75 @@ int main (int argc, char *argv[])
 						else if (activeIdo = IDO_HIDE)
 						{
 							interfaceIndex = translateInterfaceIndex(activeIndex);
-							interfaces[interfaceIndex]->SetActive(false);
-							interfaces[interfaceIndex]->Print();
-							activeIndex = -1;
-							interfaceIndex = -1;
-
-							if (settings->root["hiddenInterfaces"][0].isNull())
+							if (interfaceIndex != -1)
 							{
-								settings->root["hiddenInterfaces"][0] = activeInterface->name;
-							}
-							else
-							{
-								settings->root["hiddenInterfaces"].append(activeInterface->name);
-							}
-							settings->SaveSettings();
+								interfaces[interfaceIndex]->SetActive(false);
+								interfaces[interfaceIndex]->Print();
+								activeIndex = -1;
+								interfaceIndex = -1;
 
-							mode = MODE_NORMAL;
-							footer->UpdateMode(mode);
-							footer->Print();
-
-							if (interfaceDetailWindow != NULL)
-							{
-								delete interfaceDetailWindow;
-								interfaceDetailWindow = NULL;
-							}
-
-							activeInterface->RemoveFromUI();
-
-							std::vector<Interface *>::iterator if_it = std::find(interfaces.begin(), interfaces.end(), activeInterface);
-							std::vector<InterfaceRow *>::iterator ifr_it = std::find(interfaceRows.begin(), interfaceRows.end(), activeInterface->getInterfaceRow());
-							if (if_it == interfaces.end() || ifr_it == interfaceRows.end())
-							{
-								logger->Log("Element Not Found\n");
-							}
-							else
-							{
-								logger->Log("Element Found\n");
-								int index = std::distance(interfaces.begin(), if_it);
-								int ifr_index = std::distance(interfaceRows.begin(), ifr_it);
-								logger->Log(std::to_string(index) + "\n");
-								
-								// Move each interface up one row
-								int interfaceRowIndex = ifr_index;
-								if (index != interfaces.size())
+								if (settings->root["hiddenInterfaces"][0].isNull())
 								{
-									for (size_t i = (size_t)(index + 1); i < interfaces.size(); ++i)
+									settings->root["hiddenInterfaces"][0] = activeInterface->name;
+								}
+								else
+								{
+									settings->root["hiddenInterfaces"].append(activeInterface->name);
+								}
+								settings->SaveSettings();
+
+								mode = MODE_NORMAL;
+								footer->UpdateMode(mode);
+								footer->Print();
+
+								if (interfaceDetailWindow != NULL)
+								{
+									delete interfaceDetailWindow;
+									interfaceDetailWindow = NULL;
+								}
+
+								activeInterface->RemoveFromUI();
+
+								std::vector<Interface *>::iterator if_it = std::find(interfaces.begin(), interfaces.end(), activeInterface);
+								std::vector<InterfaceRow *>::iterator ifr_it = std::find(interfaceRows.begin(), interfaceRows.end(), activeInterface->getInterfaceRow());
+								if (if_it == interfaces.end() || ifr_it == interfaceRows.end())
+								{
+									logger->Log("Element Not Found\n");
+								}
+								else
+								{
+									logger->Log("Element Found\n");
+									int index = std::distance(interfaces.begin(), if_it);
+									int ifr_index = std::distance(interfaceRows.begin(), ifr_it);
+									logger->Log(std::to_string(index) + "\n");
+									
+									// Move each interface up one row
+									int interfaceRowIndex = ifr_index;
+									if (index != interfaces.size())
 									{
-										if (!interfaces[i]->IsHidden())
+										for (size_t i = (size_t)(index + 1); i < interfaces.size(); ++i)
 										{
-											interfaces[i]->setInterfaceRow(interfaceRows[interfaceRowIndex]);
-											interfaceRowIndex++;
+											if (!interfaces[i]->IsHidden())
+											{
+												interfaces[i]->setInterfaceRow(interfaceRows[interfaceRowIndex]);
+												interfaceRowIndex++;
+											}
 										}
 									}
-								}
-								updateInterfaceUI();
+									updateInterfaceUI();
 
-								// Delete the unneeded row
-								delete interfaceRows[interfaceRows.size()];
-								interfaceRows.erase(interfaceRows.end() - 1, interfaceRows.end());
+									// Delete the unneeded row
+									delete interfaceRows[interfaceRows.size()];
+									interfaceRows.erase(interfaceRows.end() - 1, interfaceRows.end());
 
-								// Resize the graphs
-								graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
-								graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+									// Resize the graphs
+									graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+									graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
 
-								for (size_t i = 0; i < graphs.size(); i++)
-								{
-									graphs[i]->UpdateGraphInterface(NULL);
+									for (size_t i = 0; i < graphs.size(); i++)
+									{
+										graphs[i]->UpdateGraphInterface(NULL);
+									}
 								}
 							}
 						}

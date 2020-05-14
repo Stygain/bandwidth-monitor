@@ -5,6 +5,20 @@
 #include <string.h>
 
 
+#define GRAPH_MIN_WIDTH 37
+#define GRAPH_MIN_HEIGHT 20
+
+typedef enum
+{
+	GM_ONE,
+	GM_TWO_WIDE,
+	GM_TWO_TALL,
+	GM_FOUR_WIDE,
+	GM_FOUR_TALL,
+	GM_TWO_WIDE_TWO_TALL
+} GraphMode;
+
+
 typedef enum
 {
 	MODE_NORMAL,
