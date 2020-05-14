@@ -33,6 +33,9 @@ std::vector<Graph *> graphs;
 extern Logger *logger;
 extern Settings *settings;
 
+GraphMode gm;
+GraphMode gmLast;
+
 
 
 
@@ -295,6 +298,11 @@ GraphMode assessGraphUISize()
 		numWide = 1;
 	}
 
+	logger->Log("Available vertical space: ");
+	logger->Log(std::to_string((LINES - ((interfaceRows.size() * 3) + 1) - 2)));
+	logger->Log(":");
+	logger->Log(std::to_string(GRAPH_MIN_HEIGHT));
+	logger->Log("\n");
 	// If the screen is tall enough, add in the other graphs
 	if ((LINES - ((interfaceRows.size() * 3) + 1) - 2) > (GRAPH_MIN_HEIGHT * 4))
 	{
@@ -369,7 +377,8 @@ GraphMode resizeUI()
 	logger->Log(std::to_string(LINES));
 	logger->Log("\n");
 
-	GraphMode gm = assessGraphUISize();
+	gmLast = gm;
+	gm = assessGraphUISize();
 	logger->Log("GRAPH MODE: ");
 	logger->Log(std::to_string((int)gm));
 	logger->Log("\n");
@@ -378,48 +387,81 @@ GraphMode resizeUI()
 
 	footer->Resize(0, LINES-1, COLS, 1);
 
-	// TODO keep track of old gm mode, see what needs to be deleted etc,
 	switch (gm)
 	{
 		case GM_ONE:
 		{
 			graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+			if (gmLast != gm)
+			{
+			}
+			break;
 		}
 		case GM_TWO_WIDE:
 		{
-			graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
-			graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+			int startXPos = 0;
+			int width = (int)(COLS / 2) - 1;
+			int height = (LINES - ((interfaceRows.size() * 3) + 1) - 2);
+			graphs[0]->Resize(startXPos, (interfaceRows.size() * 3) + 1, width, height);
+			graphs[1]->Resize(startXPos + width, (interfaceRows.size() * 3) + 1, width, height);
+			if (gmLast != gm)
+			{
+			}
+			break;
 		}
 		case GM_TWO_TALL:
 		{
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int height = (int)((LINES - startYPos) / 2);
+			int width = COLS;
+			graphs[0]->Resize(0, startYPos, width, height);
+			graphs[1]->Resize(0, startYPos + height, width, height);
+			if (gmLast != gm)
+			{
+			}
+			break;
 		}
 		case GM_FOUR_WIDE:
 		{
+			if (gmLast != gm)
+			{
+			}
+			break;
 		}
 		case GM_FOUR_TALL:
 		{
+			if (gmLast != gm)
+			{
+			}
+			break;
 		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
+			if (gmLast != gm)
+			{
+			}
+			break;
 		}
 	}
 
 	return gm;
 }
 
-void updateGraphs(GraphMode gm)
+void updateGraphs()
 {
 	switch (gm)
 	{
 		case GM_ONE:
 		{
 			graphs[0]->Update();
+			break;
 		}
 		case GM_TWO_WIDE:
 		case GM_TWO_TALL:
 		{
 			graphs[0]->Update();
 			graphs[1]->Update();
+			break;
 		}
 		case GM_FOUR_WIDE:
 		case GM_FOUR_TALL:
@@ -429,23 +471,26 @@ void updateGraphs(GraphMode gm)
 			graphs[1]->Update();
 			graphs[2]->Update();
 			graphs[3]->Update();
+			break;
 		}
 	}
 }
 
-void deactivateGraphs(GraphMode gm)
+void deactivateGraphs()
 {
 	switch (gm)
 	{
 		case GM_ONE:
 		{
 			graphs[0]->setActive(false);
+			break;
 		}
 		case GM_TWO_WIDE:
 		case GM_TWO_TALL:
 		{
 			graphs[0]->setActive(false);
 			graphs[1]->setActive(false);
+			break;
 		}
 		case GM_FOUR_WIDE:
 		case GM_FOUR_TALL:
@@ -455,23 +500,26 @@ void deactivateGraphs(GraphMode gm)
 			graphs[1]->setActive(false);
 			graphs[2]->setActive(false);
 			graphs[3]->setActive(false);
+			break;
 		}
 	}
 }
 
-void printGraphs(GraphMode gm)
+void printGraphs()
 {
 	switch (gm)
 	{
 		case GM_ONE:
 		{
 			graphs[0]->Print();
+			break;
 		}
 		case GM_TWO_WIDE:
 		case GM_TWO_TALL:
 		{
 			graphs[0]->Print();
 			graphs[1]->Print();
+			break;
 		}
 		case GM_FOUR_WIDE:
 		case GM_FOUR_TALL:
@@ -481,11 +529,12 @@ void printGraphs(GraphMode gm)
 			graphs[1]->Print();
 			graphs[2]->Print();
 			graphs[3]->Print();
+			break;
 		}
 	}
 }
 
-int getGraphIndex(GraphMode gm, int activeIndex)
+int getGraphIndex(int activeIndex)
 {
 	switch (gm)
 	{
@@ -507,19 +556,21 @@ int getGraphIndex(GraphMode gm, int activeIndex)
 	}
 }
 
-void updateAllGraphInterfaces(GraphMode gm, Interface * interface)
+void updateAllGraphInterfaces(Interface * interface)
 {
 	switch (gm)
 	{
 		case GM_ONE:
 		{
 			graphs[0]->UpdateGraphInterface(interface);
+			break;
 		}
 		case GM_TWO_WIDE:
 		case GM_TWO_TALL:
 		{
 			graphs[0]->UpdateGraphInterface(interface);
 			graphs[1]->UpdateGraphInterface(interface);
+			break;
 		}
 		case GM_FOUR_WIDE:
 		case GM_FOUR_TALL:
@@ -529,23 +580,26 @@ void updateAllGraphInterfaces(GraphMode gm, Interface * interface)
 			graphs[1]->UpdateGraphInterface(interface);
 			graphs[2]->UpdateGraphInterface(interface);
 			graphs[3]->UpdateGraphInterface(interface);
+			break;
 		}
 	}
 }
 
-void clearGraphs(GraphMode gm)
+void clearGraphs()
 {
 	switch (gm)
 	{
 		case GM_ONE:
 		{
 			graphs[0]->Clear();
+			break;
 		}
 		case GM_TWO_WIDE:
 		case GM_TWO_TALL:
 		{
 			graphs[0]->Clear();
 			graphs[1]->Clear();
+			break;
 		}
 		case GM_FOUR_WIDE:
 		case GM_FOUR_TALL:
@@ -555,6 +609,7 @@ void clearGraphs(GraphMode gm)
 			graphs[1]->Clear();
 			graphs[2]->Clear();
 			graphs[3]->Clear();
+			break;
 		}
 	}
 }
@@ -613,7 +668,8 @@ int main (int argc, char *argv[])
 	GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
 	GraphType gt2 = (GraphType)settings->root["graphs"][2].asInt();
 	GraphType gt3 = (GraphType)settings->root["graphs"][3].asInt();
-	GraphMode gm = assessGraphUISize();
+	gmLast = gm;
+	gm = assessGraphUISize();
 	logger->Log("GRAPH MODE: ");
 	logger->Log(std::to_string((int)gm));
 	logger->Log("\n");
@@ -625,23 +681,37 @@ int main (int argc, char *argv[])
 	{
 		case GM_ONE:
 		{
+			break;
 		}
 		case GM_TWO_WIDE:
 		{
-			graphs[0]->Create(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
-			graphs[1]->Create((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+			int startXPos = 0;
+			int width = (int)(COLS / 2) - 1;
+			int height = (LINES - ((interfaceRows.size() * 3) + 1) - 2);
+			graphs[0]->Create(startXPos, (interfaceRows.size() * 3) + 1, width, height);
+			graphs[1]->Create(startXPos + width, (interfaceRows.size() * 3) + 1, width, height);
+			break;
 		}
 		case GM_TWO_TALL:
 		{
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int height = (int)((LINES - startYPos) / 2) - 1;
+			int width = COLS;
+			graphs[0]->Create(0, startYPos, width, height);
+			graphs[1]->Create(0, startYPos + height + 1, width, height);
+			break;
 		}
 		case GM_FOUR_WIDE:
 		{
+			break;
 		}
 		case GM_FOUR_TALL:
 		{
+			break;
 		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
+			break;
 		}
 	}
 
@@ -690,7 +760,7 @@ int main (int argc, char *argv[])
 			}
 			updateInterfaceUI();
 
-			updateGraphs(gm);
+			updateGraphs();
 			sortInterfaces((InterfaceHeaderContent)interfaceHeader->sortingHeader);
 
 			if (interfaceDetailWindow != NULL)
@@ -711,7 +781,7 @@ int main (int argc, char *argv[])
 		if (ch != -1)
 		{
 			if (ch == KEY_RESIZE) {
-				gm = resizeUI();
+				resizeUI();
 			}
 			if (ch == (int)'q')
 			{
@@ -731,7 +801,7 @@ int main (int argc, char *argv[])
 					footer->UpdateMode(mode);
 					footer->Print();
 
-					deactivateGraphs(gm);
+					deactivateGraphs();
 				}
 				else if (mode == MODE_GRAPH_SELECTION)
 				{
@@ -745,7 +815,7 @@ int main (int argc, char *argv[])
 						selectionWindow = NULL;
 					}
 
-					printGraphs(gm);
+					printGraphs();
 				}
 				else if (mode == MODE_INTERFACE_DETAIL)
 				{
@@ -882,7 +952,7 @@ int main (int argc, char *argv[])
 						interfaces[interfaceIndex]->SetActive(false);
 						interfaces[interfaceIndex]->Print();
 
-						updateAllGraphInterfaces(gm, NULL);
+						updateAllGraphInterfaces(NULL);
 					}
 
 					activeIndex = -1;
@@ -952,8 +1022,8 @@ int main (int argc, char *argv[])
 						{
 							activeGraph -= 1;
 						}
-						activeGraph = getGraphIndex(gm, activeGraph);
-						deactivateGraphs(gm);
+						activeGraph = getGraphIndex(activeGraph);
+						deactivateGraphs();
 						graphs[activeGraph]->setActive(true);
 					}
 					break;
@@ -971,8 +1041,8 @@ int main (int argc, char *argv[])
 					else if (mode == MODE_GRAPH)
 					{
 						activeGraph += 1;
-						activeGraph = getGraphIndex(gm, activeGraph);
-						deactivateGraphs(gm);
+						activeGraph = getGraphIndex(activeGraph);
+						deactivateGraphs();
 						graphs[activeGraph]->setActive(true);
 					}
 					break;
@@ -1016,7 +1086,7 @@ int main (int argc, char *argv[])
 							footer->UpdateMode(mode);
 							footer->Print();
 
-							int graphIndex = getGraphIndex(gm, activeGraph);
+							int graphIndex = getGraphIndex(activeGraph);
 							selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1, graphTypeStringSize + 1, (int)GT_END + 2);
 						}
 					}
@@ -1026,7 +1096,7 @@ int main (int argc, char *argv[])
 						footer->UpdateMode(mode);
 						footer->Print();
 
-						int graphIndex = getGraphIndex(gm, activeGraph);
+						int graphIndex = getGraphIndex(activeGraph);
 
 						// Get the new graph type
 						GraphType newType = selectionWindow->GetActiveItemGraphType();
@@ -1065,7 +1135,7 @@ int main (int argc, char *argv[])
 
 						if (activeIdo == IDO_SELECT)
 						{
-							updateAllGraphInterfaces(gm, activeInterface);
+							updateAllGraphInterfaces(activeInterface);
 						}
 						else if (activeIdo = IDO_HIDE)
 						{
@@ -1133,7 +1203,7 @@ int main (int argc, char *argv[])
 
 									resizeUI();
 
-									updateAllGraphInterfaces(gm, NULL);
+									updateAllGraphInterfaces(NULL);
 								}
 							}
 						}
@@ -1160,7 +1230,7 @@ int main (int argc, char *argv[])
 						break;
 					}
 
-					clearGraphs(gm);
+					clearGraphs();
 
 					break;
 				}
