@@ -285,6 +285,16 @@ int translateInterfaceIndex(int index)
 	return -1;
 }
 
+void resizeUI()
+{
+	clear();
+
+	footer->Resize(0, LINES-1, COLS, 1);
+
+	graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+	graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+}
+
 
 
 int main (int argc, char *argv[])
@@ -411,19 +421,7 @@ int main (int argc, char *argv[])
 		if (ch != -1)
 		{
 			if (ch == KEY_RESIZE) {
-				// TODO
-				logger->Log("RESIZE\n");
-				logger->Log(std::to_string(COLS));
-				logger->Log("\n");
-				logger->Log(std::to_string(LINES));
-				logger->Log("\n");
-
-				clear();
-
-				footer->Resize(0, LINES-1, COLS, 1);
-
-				graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
-				graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+				resizeUI();
 			}
 			if (ch == (int)'q')
 			{
@@ -713,12 +711,15 @@ int main (int argc, char *argv[])
 					}
 					else if (mode == MODE_NORMAL)
 					{
-						mode = MODE_INTERFACE_DETAIL;
-						footer->UpdateMode(mode);
-						footer->Print();
+						if (interfaceIndex != -1)
+						{
+							mode = MODE_INTERFACE_DETAIL;
+							footer->UpdateMode(mode);
+							footer->Print();
 
-						InterfaceRow *currentInterfaceRow = interfaces[interfaceIndex]->getInterfaceRow();
-						interfaceDetailWindow = new InterfaceDetailWindow(currentInterfaceRow->GetPlacementX(), currentInterfaceRow->GetPlacementY() + 2, currentInterfaceRow->GetWidth(), 8, interfaces[interfaceIndex]);
+							InterfaceRow *currentInterfaceRow = interfaces[interfaceIndex]->getInterfaceRow();
+							interfaceDetailWindow = new InterfaceDetailWindow(currentInterfaceRow->GetPlacementX(), currentInterfaceRow->GetPlacementY() + 2, currentInterfaceRow->GetWidth(), 8, interfaces[interfaceIndex]);
+						}
 					}
 					else if (mode == MODE_GRAPH)
 					{
@@ -782,6 +783,7 @@ int main (int argc, char *argv[])
 							interfaces[interfaceIndex]->SetActive(false);
 							interfaces[interfaceIndex]->Print();
 							activeIndex = -1;
+							interfaceIndex = -1;
 
 							if (settings->root["hiddenInterfaces"][0].isNull())
 							{
@@ -840,6 +842,11 @@ int main (int argc, char *argv[])
 								// Resize the graphs
 								graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
 								graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+
+								for (size_t i = 0; i < graphs.size(); i++)
+								{
+									graphs[i]->UpdateGraphInterface(NULL);
+								}
 							}
 						}
 					}

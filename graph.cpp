@@ -30,9 +30,12 @@ void GraphDataColumn::Update()
 			{
 				for (size_t i = 0; i < this->interfaces->size(); i++)
 				{
-					if (this->interfaces->at(i)->r_packetsLast != 0)
+					if (!this->interfaces->at(i)->IsHidden())
 					{
-						pktsRecvDiff += this->interfaces->at(i)->r_packets - this->interfaces->at(i)->r_packetsLast;
+						if (this->interfaces->at(i)->r_packetsLast != 0)
+						{
+							pktsRecvDiff += this->interfaces->at(i)->r_packets - this->interfaces->at(i)->r_packetsLast;
+						}
 					}
 				}
 			}
@@ -52,9 +55,12 @@ void GraphDataColumn::Update()
 			{
 				for (size_t i = 0; i < this->interfaces->size(); i++)
 				{
-					if (this->interfaces->at(i)->r_bytesLast != 0)
+					if (!this->interfaces->at(i)->IsHidden())
 					{
-						bytesRecvDiff += this->interfaces->at(i)->r_bytes - this->interfaces->at(i)->r_bytesLast;
+						if (this->interfaces->at(i)->r_bytesLast != 0)
+						{
+							bytesRecvDiff += this->interfaces->at(i)->r_bytes - this->interfaces->at(i)->r_bytesLast;
+						}
 					}
 				}
 			}
@@ -74,9 +80,12 @@ void GraphDataColumn::Update()
 			{
 				for (size_t i = 0; i < this->interfaces->size(); i++)
 				{
-					if (this->interfaces->at(i)->t_packetsLast != 0)
+					if (!this->interfaces->at(i)->IsHidden())
 					{
-						pktsSendDiff += this->interfaces->at(i)->t_packets - this->interfaces->at(i)->t_packetsLast;
+						if (this->interfaces->at(i)->t_packetsLast != 0)
+						{
+							pktsSendDiff += this->interfaces->at(i)->t_packets - this->interfaces->at(i)->t_packetsLast;
+						}
 					}
 				}
 			}
@@ -96,9 +105,12 @@ void GraphDataColumn::Update()
 			{
 				for (size_t i = 0; i < this->interfaces->size(); i++)
 				{
-					if (this->interfaces->at(i)->t_bytesLast != 0)
+					if (!this->interfaces->at(i)->IsHidden())
 					{
-						bytesSendDiff += this->interfaces->at(i)->t_bytes - this->interfaces->at(i)->t_bytesLast;
+						if (this->interfaces->at(i)->t_bytesLast != 0)
+						{
+							bytesSendDiff += this->interfaces->at(i)->t_bytes - this->interfaces->at(i)->t_bytesLast;
+						}
 					}
 				}
 			}
