@@ -285,6 +285,100 @@ int translateInterfaceIndex(int index)
 	return -1;
 }
 
+GraphMode assessGraphUISize()
+{
+	int numWide = 0;
+	int numTall = 0;
+	if (COLS > (GRAPH_MIN_WIDTH * 4))
+	{
+		// Or if the screen is wide enough add the other graphs
+		logger->Log("Wide enough for four\n");
+		numWide = 4;
+	}
+	else if (COLS > (GRAPH_MIN_WIDTH * 2))
+	{
+		// Or if the screen is wide enough add the other graphs
+		logger->Log("Wide enough for two ");
+		logger->Log(std::to_string(COLS));
+		logger->Log(":");
+		logger->Log(std::to_string(GRAPH_MIN_WIDTH*2));
+		logger->Log("\n");
+		numWide = 2;
+	}
+	else
+	{
+		logger->Log("Wide enough for one ");
+		logger->Log(std::to_string(COLS));
+		logger->Log(":");
+		logger->Log(std::to_string(GRAPH_MIN_WIDTH*2));
+		logger->Log("\n");
+		numWide = 1;
+	}
+
+	// If the screen is tall enough, add in the other graphs
+	if ((LINES - ((interfaceRows.size() * 3) + 1) - 2) > (GRAPH_MIN_HEIGHT * 4))
+	{
+		logger->Log("Tall enough for four\n");
+		numTall = 32;
+	}
+	else if ((LINES - ((interfaceRows.size() * 3) + 1) - 2) > (GRAPH_MIN_HEIGHT * 2))
+	{
+		logger->Log("Tall enough for two\n");
+		numTall = 16;
+	}
+	else
+	{
+		logger->Log("Tall enough for one\n");
+		numTall = 8;
+	}
+
+	logger->Log("Values: ");
+	logger->Log(std::to_string(numWide));
+	logger->Log("x");
+	logger->Log(std::to_string(numTall));
+	logger->Log(" | ");
+	logger->Log(std::to_string(numWide | numTall));
+	logger->Log("\n");
+
+	// Translate numWide and numTall to GM types
+	switch (numWide | numTall)
+	{
+		case 4 | 8:
+		case 4 | 16:
+		case 4 | 32:
+		{
+			logger->Log("Returning 4 wide\n");
+			return GM_FOUR_WIDE;
+		}
+		case 2 | 8:
+		{
+			logger->Log("Returning 2 wide\n");
+			return GM_TWO_WIDE;
+		}
+		case 2 | 16:
+		case 2 | 32:
+		{
+			logger->Log("Returning 2 wide 2 tall\n");
+			return GM_TWO_WIDE_TWO_TALL;
+		}
+		case 1 | 32:
+		{
+			logger->Log("Returning 4 tall\n");
+			return GM_FOUR_TALL;
+		}
+		case 1 | 16:
+		{
+			logger->Log("Returning 2 tall\n");
+			return GM_TWO_TALL;
+		}
+		case 1 | 8:
+		{
+			logger->Log("Returning 1\n");
+			return GM_ONE;
+		}
+	}
+}
+
 void resizeUI()
 {
 	logger->Log("New width: ");
@@ -295,47 +389,37 @@ void resizeUI()
 	logger->Log(std::to_string(LINES));
 	logger->Log("\n");
 
+	GraphMode gm = assessGraphUISize();
+	logger->Log("GRAPH MODE: ");
+	logger->Log(std::to_string((int)gm));
+	logger->Log("\n");
+
 	clear();
 
 	footer->Resize(0, LINES-1, COLS, 1);
 
-	graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
-	graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
-
-	// If the screen is tall enough, add in the other graphs
-	if ((LINES - ((interfaceRows.size() * 3) + 1) - 2) > (GRAPH_MIN_HEIGHT * 4))
+	switch (gm)
 	{
-		logger->Log("Tall enough for four\n");
-	}
-	else if ((LINES - ((interfaceRows.size() * 3) + 1) - 2) > (GRAPH_MIN_HEIGHT * 2))
-	{
-		logger->Log("Tall enough for two\n");
-	}
-	else
-	{
-		logger->Log("Tall enough for one\n");
-	}
-	if (COLS > (GRAPH_MIN_WIDTH * 4))
-	{
-		// Or if the screen is wide enough add the other graphs
-		logger->Log("Wide enough for four\n");
-	}
-	else if (COLS > (GRAPH_MIN_WIDTH * 2))
-	{
-		// Or if the screen is wide enough add the other graphs
-		logger->Log("Wide enough for two ");
-		logger->Log(std::to_string(COLS));
-		logger->Log(":");
-		logger->Log(std::to_string(GRAPH_MIN_WIDTH*2));
-		logger->Log("\n");
-	}
-	else
-	{
-		logger->Log("Wide enough for one ");
-		logger->Log(std::to_string(COLS));
-		logger->Log(":");
-		logger->Log(std::to_string(GRAPH_MIN_WIDTH*2));
-		logger->Log("\n");
+		case GM_ONE:
+		{
+		}
+		case GM_TWO_WIDE:
+		{
+			graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+			graphs[1]->Resize((int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+		}
+		case GM_TWO_TALL:
+		{
+		}
+		case GM_FOUR_WIDE:
+		{
+		}
+		case GM_FOUR_TALL:
+		{
+		}
+		case GM_TWO_WIDE_TWO_TALL:
+		{
+		}
 	}
 }
 
@@ -392,8 +476,33 @@ int main (int argc, char *argv[])
 	GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
 	GraphType gt2 = (GraphType)settings->root["graphs"][2].asInt();
 	GraphType gt3 = (GraphType)settings->root["graphs"][3].asInt();
-	graphs.push_back(new Graph(gt0, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
-	graphs.push_back(new Graph(gt1, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
+	GraphMode gm = assessGraphUISize();
+	logger->Log("GRAPH MODE: ");
+	logger->Log(std::to_string((int)gm));
+	logger->Log("\n");
+	switch (gm)
+	{
+		case GM_ONE:
+		{
+		}
+		case GM_TWO_WIDE:
+		{
+			graphs.push_back(new Graph(gt0, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
+			graphs.push_back(new Graph(gt1, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
+		}
+		case GM_TWO_TALL:
+		{
+		}
+		case GM_FOUR_WIDE:
+		{
+		}
+		case GM_FOUR_TALL:
+		{
+		}
+		case GM_TWO_WIDE_TWO_TALL:
+		{
+		}
+	}
 
 	for (size_t i = 0; i < graphs.size(); i++)
 	{
