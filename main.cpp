@@ -28,33 +28,13 @@ std::vector<InterfaceRow *> interfaceRows;
 std::vector<Interface *> interfaces;
 Footer *footer = NULL;
 InterfaceDetailWindow *interfaceDetailWindow = NULL;
+std::vector<Graph *> graphs;
 
 extern Logger *logger;
 extern Settings *settings;
 
 
 
-std::vector<Graph *> graphs;
-
-Interface *getMatchingInterface(char *ifname)
-{
-	try
-	{
-		for (size_t i = 0; i < interfaces.size(); ++i)
-		{
-			if (strcmp(interfaces[i]->name, ifname) == 0)
-			{
-				return interfaces[i];
-			}
-		}
-	}
-	catch (...)
-	{
-		logger->Log("Exception encountered\n");
-		return NULL;
-	}
-	return NULL;
-}
 
 void initializeInterfaces()
 {
@@ -429,23 +409,22 @@ void updateGraphs(GraphMode gm)
 	{
 		case GM_ONE:
 		{
+			graphs[0]->Update();
 		}
 		case GM_TWO_WIDE:
+		case GM_TWO_TALL:
 		{
 			graphs[0]->Update();
 			graphs[1]->Update();
 		}
-		case GM_TWO_TALL:
-		{
-		}
 		case GM_FOUR_WIDE:
-		{
-		}
 		case GM_FOUR_TALL:
-		{
-		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
+			graphs[0]->Update();
+			graphs[1]->Update();
+			graphs[2]->Update();
+			graphs[3]->Update();
 		}
 	}
 }
@@ -456,23 +435,22 @@ void deactivateGraphs(GraphMode gm)
 	{
 		case GM_ONE:
 		{
+			graphs[0]->setActive(false);
 		}
 		case GM_TWO_WIDE:
+		case GM_TWO_TALL:
 		{
 			graphs[0]->setActive(false);
 			graphs[1]->setActive(false);
 		}
-		case GM_TWO_TALL:
-		{
-		}
 		case GM_FOUR_WIDE:
-		{
-		}
 		case GM_FOUR_TALL:
-		{
-		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
+			graphs[0]->setActive(false);
+			graphs[1]->setActive(false);
+			graphs[2]->setActive(false);
+			graphs[3]->setActive(false);
 		}
 	}
 }
@@ -483,23 +461,22 @@ void printGraphs(GraphMode gm)
 	{
 		case GM_ONE:
 		{
+			graphs[0]->Print();
 		}
 		case GM_TWO_WIDE:
+		case GM_TWO_TALL:
 		{
 			graphs[0]->Print();
 			graphs[1]->Print();
 		}
-		case GM_TWO_TALL:
-		{
-		}
 		case GM_FOUR_WIDE:
-		{
-		}
 		case GM_FOUR_TALL:
-		{
-		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
+			graphs[0]->Print();
+			graphs[1]->Print();
+			graphs[2]->Print();
+			graphs[3]->Print();
 		}
 	}
 }
@@ -510,23 +487,22 @@ void resetGraphInterfaces(GraphMode gm)
 	{
 		case GM_ONE:
 		{
+			graphs[0]->UpdateGraphInterface(NULL);
 		}
 		case GM_TWO_WIDE:
+		case GM_TWO_TALL:
 		{
 			graphs[0]->UpdateGraphInterface(NULL);
 			graphs[1]->UpdateGraphInterface(NULL);
 		}
-		case GM_TWO_TALL:
-		{
-		}
 		case GM_FOUR_WIDE:
-		{
-		}
 		case GM_FOUR_TALL:
-		{
-		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
+			graphs[0]->UpdateGraphInterface(NULL);
+			graphs[1]->UpdateGraphInterface(NULL);
+			graphs[2]->UpdateGraphInterface(NULL);
+			graphs[3]->UpdateGraphInterface(NULL);
 		}
 	}
 }
@@ -1213,6 +1189,7 @@ int main (int argc, char *argv[])
 	delete footer;
 	graphs.clear();
 	delete logger;
+	delete settings;
 
 	endwin();
 
