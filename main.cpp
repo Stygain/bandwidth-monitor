@@ -344,8 +344,10 @@ int main (int argc, char *argv[])
 	footer = new Footer(0, LINES-1, COLS, 1);
 	SelectionWindow *selectionWindow = NULL;
 
-	graphs.push_back(new Graph(GT_PKTS_RECV, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
-	graphs.push_back(new Graph(GT_PKTS_SEND, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
+	GraphType gt0 = (GraphType)settings->root["graphs"][0].asInt();
+	GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
+	graphs.push_back(new Graph(gt0, 0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
+	graphs.push_back(new Graph(gt1, (int)(COLS / 2), (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2), &interfaces));
 
 	for (size_t i = 0; i < graphs.size(); i++)
 	{
@@ -764,6 +766,10 @@ int main (int argc, char *argv[])
 						graphs[graphIndex] = new Graph(newType, oldPlacementX, oldPlacementY, oldWidth, oldHeight, &interfaces);
 						graphs[graphIndex]->Create();
 						graphs[graphIndex]->UpdateGraphInterface(oldInterface);
+
+						settings->root["graphs"][0] = (int)graphs[0]->GetGraphType();
+						settings->root["graphs"][1] = (int)graphs[1]->GetGraphType();
+						settings->SaveSettings();
 					}
 					else if (mode == MODE_INTERFACE_DETAIL)
 					{

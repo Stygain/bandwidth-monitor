@@ -43,6 +43,8 @@ void Settings::InitializeSettings()
 		// Initialize the default settings locally
 		this->root["sortingColumn"] = -1;
 		this->root["zeroOnStart"] = 1;
+		this->root["graphs"][0] = 0;
+		this->root["graphs"][1] = 1;
 
 		// Call save
 		this->SaveSettings();
