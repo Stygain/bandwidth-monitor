@@ -109,9 +109,11 @@ class Interface
 		char *name;
 		unsigned long int r_bytes;
 		unsigned long int r_bytesLast = 0;
+		unsigned long int r_bytesLastLast = 0;
 		unsigned long int r_bytesZeroed = 0;
 		unsigned long int t_bytes;
 		unsigned long int t_bytesLast = 0;
+		unsigned long int t_bytesLastLast = 0;
 		unsigned long int t_bytesZeroed = 0;
 		unsigned long int r_packets;
 		unsigned long int r_packetsLast = 0;
@@ -124,6 +126,8 @@ class Interface
 		int linkQual;
 		int levelQual;
 		int noiseQual;
+		int r_bps = 0;
+		int t_bps = 0;
 
 	private:
 		InterfaceRow * interfaceRow = NULL;

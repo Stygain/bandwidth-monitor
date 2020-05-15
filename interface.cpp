@@ -156,14 +156,33 @@ void Interface::Update()
 
 		if (strcmp(ifname, this->name) == 0)
 		{
+			this->r_bytesLastLast = this->r_bytesLast;
 			this->r_bytesLast = this->r_bytes;
 			this->r_bytes = r_bytes;
+			this->t_bytesLastLast = this->t_bytesLast;
 			this->t_bytesLast = this->t_bytes;
 			this->t_bytes = t_bytes;
 			this->r_packetsLast = this->r_packets;
 			this->r_packets = r_packets;
 			this->t_packetsLast = this->t_packets;
 			this->t_packets = t_packets;
+
+			if (((this->r_bytes - this->r_bytesLast) + (this->r_bytesLast - this->r_bytesLastLast)) == 0)
+			{
+				this->r_bps = 0;
+			}
+			else
+			{
+				this->r_bps = (int)(((this->r_bytes - this->r_bytesLast) + (this->r_bytesLast - this->r_bytesLastLast)) / 2);
+			}
+			if (((this->t_bytes - this->t_bytesLast) + (this->t_bytesLast - this->t_bytesLastLast)) == 0)
+			{
+				this->t_bps = 0;
+			}
+			else
+			{
+				this->t_bps = (int)(((this->t_bytes - this->t_bytesLast) + (this->t_bytesLast - this->t_bytesLastLast)) / 2);
+			}
 			break;
 		}
 	}
@@ -391,6 +410,44 @@ void InterfaceDetailWindow::Update()
 		mvwprintw(this->win, 3, 25, "Level Quality: %d", this->interface->levelQual);
 		mvwprintw(this->win, 4, 25, "Noise Quality: %d", this->interface->noiseQual);
 	}
+
+	char r_bpsUnit[3] = "B";
+	int r_bps = this->interface->r_bps;
+	if (r_bps > 1000)
+	{
+		r_bps = (int)(r_bps / 1000);
+		strcpy(r_bpsUnit, "KB");
+	}
+	if (r_bps > 1000)
+	{
+		r_bps = (int)(r_bps / 1000);
+		strcpy(r_bpsUnit, "MB");
+	}
+	if (r_bps > 1000)
+	{
+		r_bps = (int)(r_bps / 1000);
+		strcpy(r_bpsUnit, "GB");
+	}
+
+	char t_bpsUnit[3] = "B";
+	int t_bps = this->interface->t_bps;
+	if (t_bps > 1000)
+	{
+		t_bps = (int)(t_bps / 1000);
+		strcpy(t_bpsUnit, "KB");
+	}
+	if (t_bps > 1000)
+	{
+		t_bps = (int)(t_bps / 1000);
+		strcpy(t_bpsUnit, "MB");
+	}
+	if (t_bps > 1000)
+	{
+		t_bps = (int)(t_bps / 1000);
+		strcpy(t_bpsUnit, "GB");
+	}
+	mvwprintw(this->win, 1, 50, "Recv: %d %sps", r_bps, r_bpsUnit);
+	mvwprintw(this->win, 2, 50, "Send: %d %sps", t_bps, t_bpsUnit);
 
 	wrefresh(this->win);
 }

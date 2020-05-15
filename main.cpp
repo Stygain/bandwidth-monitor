@@ -944,7 +944,7 @@ int main (int argc, char *argv[])
 	{
 		time(&now);
 		diff = difftime(now, lastTime);
-		if (diff > 1)
+		if (diff > DIFF_SECONDS)
 		{
 			for (size_t i = 0; i < interfaces.size(); i++)
 			{
@@ -1267,7 +1267,7 @@ int main (int argc, char *argv[])
 							footer->Print();
 
 							InterfaceRow *currentInterfaceRow = interfaces[interfaceIndex]->getInterfaceRow();
-							interfaceDetailWindow = new InterfaceDetailWindow(currentInterfaceRow->GetPlacementX(), currentInterfaceRow->GetPlacementY() + 2, currentInterfaceRow->GetWidth(), 8, interfaces[interfaceIndex]);
+							interfaceDetailWindow = new InterfaceDetailWindow(currentInterfaceRow->GetPlacementX(), currentInterfaceRow->GetPlacementY() + 2, currentInterfaceRow->GetWidth(), 6, interfaces[interfaceIndex]);
 						}
 					}
 					else if (mode == MODE_GRAPH)

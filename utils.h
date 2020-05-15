@@ -5,6 +5,9 @@
 #include <string.h>
 
 
+#define DIFF_SECONDS 1
+
+
 #define GRAPH_MIN_WIDTH 37
 #define GRAPH_MIN_HEIGHT 20
 
