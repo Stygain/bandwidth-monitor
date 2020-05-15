@@ -391,9 +391,27 @@ GraphMode resizeUI()
 	{
 		case GM_ONE:
 		{
-			graphs[0]->Resize(0, (interfaceRows.size() * 3) + 1, (int)(COLS / 2) - 1, (LINES - ((interfaceRows.size() * 3) + 1) - 2));
+			int startXPos = 0;
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int width = COLS;
+			int height = (LINES - startYPos - 2);
+			graphs[0]->Resize(startXPos, startYPos, width, height);
 			if (gmLast != gm)
 			{
+				if (gmLast == GM_TWO_WIDE || gmLast == GM_TWO_TALL)
+				{
+					delete graphs[1];
+					graphs[1] = NULL;
+				}
+				if (gmLast == GM_FOUR_WIDE || gmLast == GM_FOUR_TALL || gmLast == GM_TWO_WIDE_TWO_TALL)
+				{
+					delete graphs[1];
+					delete graphs[2];
+					delete graphs[3];
+					graphs[1] = NULL;
+					graphs[2] = NULL;
+					graphs[3] = NULL;
+				}
 			}
 			break;
 		}
@@ -404,9 +422,27 @@ GraphMode resizeUI()
 			int width = (int)(COLS / 2) - 1;
 			int height = (LINES - startYPos - 2);
 			graphs[0]->Resize(startXPos, startYPos, width, height);
-			graphs[1]->Resize(startXPos + width, startYPos, width, height);
+
+			if (graphs[1] == NULL)
+			{
+				GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
+				graphs[1] = new Graph(gt1, &interfaces);
+				graphs[1]->Create(startXPos + width, startYPos, width, height);
+			}
+			else
+			{
+				graphs[1]->Resize(startXPos + width, startYPos, width, height);
+			}
+
 			if (gmLast != gm)
 			{
+				if (gmLast == GM_FOUR_WIDE || gmLast == GM_FOUR_TALL || gmLast == GM_TWO_WIDE_TWO_TALL)
+				{
+					delete graphs[2];
+					delete graphs[3];
+					graphs[2] = NULL;
+					graphs[3] = NULL;
+				}
 			}
 			break;
 		}
@@ -417,9 +453,27 @@ GraphMode resizeUI()
 			int height = (int)((LINES - startYPos) / 2);
 			int width = COLS;
 			graphs[0]->Resize(startXPos, startYPos, width, height);
-			graphs[1]->Resize(startXPos, startYPos + height, width, height);
+
+			if (graphs[1] == NULL)
+			{
+				GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
+				graphs[1] = new Graph(gt1, &interfaces);
+				graphs[1]->Create(startXPos, startYPos + height, width, height);
+			}
+			else
+			{
+				graphs[1]->Resize(startXPos, startYPos + height, width, height);
+			}
+
 			if (gmLast != gm)
 			{
+				if (gmLast == GM_FOUR_WIDE || gmLast == GM_FOUR_TALL || gmLast == GM_TWO_WIDE_TWO_TALL)
+				{
+					delete graphs[2];
+					delete graphs[3];
+					graphs[2] = NULL;
+					graphs[3] = NULL;
+				}
 			}
 			break;
 		}
@@ -430,11 +484,38 @@ GraphMode resizeUI()
 			int width = (int)(COLS / 4) - 1;
 			int height = LINES - startYPos - 2;
 			graphs[0]->Resize(startXPos, startYPos, width, height);
-			graphs[1]->Resize(startXPos + width + 1, startYPos, width, height);
-			graphs[2]->Resize(startXPos + (width * 2) + 1, startYPos, width, height);
-			graphs[3]->Resize(startXPos + (width * 3) + 1, startYPos, width, height);
-			if (gmLast != gm)
+
+			if (graphs[1] == NULL)
 			{
+				GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
+				graphs[1] = new Graph(gt1, &interfaces);
+				graphs[1]->Create(startXPos + width + 1, startYPos, width, height);
+			}
+			else
+			{
+				graphs[1]->Resize(startXPos + width + 1, startYPos, width, height);
+			}
+
+			if (graphs[2] == NULL)
+			{
+				GraphType gt2 = (GraphType)settings->root["graphs"][2].asInt();
+				graphs[2] = new Graph(gt2, &interfaces);
+				graphs[2]->Create(startXPos + (width * 2) + 1, startYPos, width, height);
+			}
+			else
+			{
+				graphs[2]->Resize(startXPos + (width * 2) + 1, startYPos, width, height);
+			}
+
+			if (graphs[3] == NULL)
+			{
+				GraphType gt3 = (GraphType)settings->root["graphs"][3].asInt();
+				graphs[3] = new Graph(gt3, &interfaces);
+				graphs[3]->Create(startXPos + (width * 3) + 1, startYPos, width, height);
+			}
+			else
+			{
+				graphs[3]->Resize(startXPos + (width * 3) + 1, startYPos, width, height);
 			}
 			break;
 		}
@@ -445,18 +526,80 @@ GraphMode resizeUI()
 			int height = (int)((LINES - startYPos) / 4) - 1;
 			int width = COLS;
 			graphs[0]->Resize(startXPos, startYPos, width, height);
-			graphs[1]->Resize(startXPos, startYPos + height + 1, width, height);
-			graphs[2]->Resize(startXPos, startYPos + (height * 2) + 1, width, height);
-			graphs[3]->Resize(startXPos, startYPos + (height * 3) + 1, width, height);
-			if (gmLast != gm)
+
+			if (graphs[1] == NULL)
 			{
+				GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
+				graphs[1] = new Graph(gt1, &interfaces);
+				graphs[1]->Create(startXPos, startYPos + height + 1, width, height);
+			}
+			else
+			{
+				graphs[1]->Resize(startXPos, startYPos + height + 1, width, height);
+			}
+
+			if (graphs[2] == NULL)
+			{
+				GraphType gt2 = (GraphType)settings->root["graphs"][2].asInt();
+				graphs[2] = new Graph(gt2, &interfaces);
+				graphs[2]->Create(startXPos, startYPos + (height * 2) + 1, width, height);
+			}
+			else
+			{
+				graphs[2]->Resize(startXPos, startYPos + (height * 2) + 1, width, height);
+			}
+
+			if (graphs[3] == NULL)
+			{
+				GraphType gt3 = (GraphType)settings->root["graphs"][3].asInt();
+				graphs[3] = new Graph(gt3, &interfaces);
+				graphs[3]->Create(startXPos, startYPos + (height * 3) + 1, width, height);
+			}
+			else
+			{
+				graphs[3]->Resize(startXPos, startYPos + (height * 3) + 1, width, height);
 			}
 			break;
 		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
-			if (gmLast != gm)
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int startXPos = 0;
+			int height = (int)((LINES - startYPos) / 2) - 2;
+			int width = (int)(COLS / 2) - 1;
+			graphs[0]->Resize(startXPos, startYPos, width, height);
+
+			if (graphs[1] == NULL)
 			{
+				GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
+				graphs[1] = new Graph(gt1, &interfaces);
+				graphs[1]->Create(startXPos + width + 1, startYPos, width, height);
+			}
+			else
+			{
+				graphs[1]->Resize(startXPos + width + 1, startYPos, width, height);
+			}
+
+			if (graphs[2] == NULL)
+			{
+				GraphType gt2 = (GraphType)settings->root["graphs"][2].asInt();
+				graphs[2] = new Graph(gt2, &interfaces);
+				graphs[2]->Create(startXPos, startYPos + height + 1, width, height);
+			}
+			else
+			{
+				graphs[2]->Resize(startXPos, startYPos + height + 1, width, height);
+			}
+
+			if (graphs[3] == NULL)
+			{
+				GraphType gt3 = (GraphType)settings->root["graphs"][3].asInt();
+				graphs[3] = new Graph(gt3, &interfaces);
+				graphs[3]->Create(startXPos + width + 1, startYPos + height + 1, width, height);
+			}
+			else
+			{
+				graphs[3]->Resize(startXPos + width + 1, startYPos + height + 1, width, height);
 			}
 			break;
 		}
@@ -752,6 +895,14 @@ int main (int argc, char *argv[])
 		}
 		case GM_TWO_WIDE_TWO_TALL:
 		{
+			int startYPos = (interfaceRows.size() * 3) + 1;
+			int startXPos = 0;
+			int height = (int)((LINES - startYPos) / 2) - 2;
+			int width = (int)(COLS / 2) - 1;
+			graphs[0]->Create(startXPos, startYPos, width, height);
+			graphs[1]->Create(startXPos + width + 1, startYPos, width, height);
+			graphs[2]->Create(startXPos, startYPos + height + 1, width, height);
+			graphs[3]->Create(startXPos + width + 1, startYPos + height + 1, width, height);
 			break;
 		}
 	}
