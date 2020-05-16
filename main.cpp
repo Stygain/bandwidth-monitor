@@ -40,7 +40,6 @@ GraphMode gmLast;
 
 
 
-
 void initializeInterfaces()
 {
 	FILE *fp = fopen("/proc/net/wireless", "r");
@@ -1460,6 +1459,12 @@ int main (int argc, char *argv[])
 					else if (mode == MODE_SETTINGS)
 					{
 						//SettingsWindowOption activeSwo = (SettingsWindowOption)settingsWindow->GetActiveItem();
+						SettingsWindowSelection sel = settingsWindow->Selected();
+						if (sel == CREATE_NEW_INTERFACE)
+						{
+							resizeUI();
+							updateInterfaceUI();
+						}
 					}
 
 					break;

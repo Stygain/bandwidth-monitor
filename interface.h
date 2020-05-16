@@ -2,6 +2,8 @@
 #define INTERFACE_H
 
 #include <string.h>
+#include <vector>
+
 #include <ncurses.h>
 
 #include "utils.h"
@@ -103,6 +105,7 @@ class Interface
 		InterfaceRow * getInterfaceRow();
 
 		void RemoveFromUI();
+		void AddToUI();
 		bool IsHidden();
 
 	public:
@@ -164,6 +167,11 @@ class InterfaceDetailWindow
 		Interface *interface;
 		int activeItem = -1;
 };
+
+
+Interface *getMatchingInterface(char *ifname);
+
+Interface *getMatchingInterface(const char *ifname);
 
 
 #endif

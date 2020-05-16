@@ -10,6 +10,12 @@
 
 typedef enum
 {
+	CREATE_NEW_INTERFACE,
+	NO_ACTION
+} SettingsWindowSelection;
+
+typedef enum
+{
 	SWO_HIDDEN_INTERFACES,
 	SWO_ZERO_ON_START,
 	SWO_END

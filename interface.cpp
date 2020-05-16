@@ -363,6 +363,11 @@ void Interface::RemoveFromUI()
 	this->hidden = true;
 }
 
+void Interface::AddToUI()
+{
+	this->hidden = false;
+}
+
 bool Interface::IsHidden()
 {
 	return this->hidden;
@@ -485,3 +490,33 @@ void InterfaceDetailWindow::DecrementActiveItem()
 
 	this->Update();
 }
+
+
+Interface *getMatchingInterface(char *ifname)
+{
+	extern std::vector<Interface *> interfaces;
+
+	for (size_t i = 0; i < interfaces.size(); ++i)
+	{
+		if (strcmp(interfaces[i]->name, ifname) == 0)
+		{
+			return interfaces[i];
+		}
+	}
+	return NULL;
+}
+
+Interface *getMatchingInterface(const char *ifname)
+{
+	extern std::vector<Interface *> interfaces;
+
+	for (size_t i = 0; i < interfaces.size(); ++i)
+	{
+		if (strcmp(interfaces[i]->name, ifname) == 0)
+		{
+			return interfaces[i];
+		}
+	}
+	return NULL;
+}
+

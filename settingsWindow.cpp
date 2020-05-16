@@ -11,7 +11,22 @@ SettingsWindow::SettingsWindow(int placementX, int placementY, int width)
 	this->width = width;
 	this->height = SWO_END + settings->root["hiddenInterfaces"].size() + 3;
 
+	this->max = SWO_END + settings->root["hiddenInterfaces"].size() - 1;
+
 	this->win = newwin(this->height, this->width, this->placementY, this->placementX);
+
+	this->Update();
+}
+
+void SettingsWindow::Resize(int placementX, int placementY, int width)
+{
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = SWO_END + settings->root["hiddenInterfaces"].size() + 3;
+
+	wresize(this->win, this->height, this->width);
+	mvwin(this->win, this->placementY, this->placementX);
 
 	this->Update();
 }
@@ -52,7 +67,7 @@ void SettingsWindow::Update()
 				wattron(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
 			}
 			placementYIndex++;
-			mvwprintw(this->win, placementYIndex, 5, "0");
+			mvwprintw(this->win, placementYIndex, 5, "%s", settings->root["zeroOnStart"].asString().c_str());
 			if (settings->root["hiddenInterfaces"].size() == activeItem)
 			{
 				wattroff(this->win, COLOR_PAIR(HEADER_ACTIVE_COLOR));
@@ -70,10 +85,6 @@ int SettingsWindow::GetActiveItem()
 
 void SettingsWindow::SetActiveItem(int activeItem)
 {
-	this->max = SWO_END + settings->root["hiddenInterfaces"].size() - 1;
-	logger->Log("MAXIMUM: ");
-	logger->Log(std::to_string(this->max));
-	logger->Log("\n");
 	this->activeItem = activeItem;
 	this->activeItem = modulo(this->activeItem, this->max);
 
@@ -82,7 +93,6 @@ void SettingsWindow::SetActiveItem(int activeItem)
 
 void SettingsWindow::IncrementActiveItem()
 {
-	this->max = SWO_END + settings->root["hiddenInterfaces"].size() - 1;
 	this->activeItem++;
 	this->activeItem = modulo(this->activeItem, this->max);
 
@@ -91,9 +101,60 @@ void SettingsWindow::IncrementActiveItem()
 
 void SettingsWindow::DecrementActiveItem()
 {
-	this->max = SWO_END + settings->root["hiddenInterfaces"].size() - 1;
 	this->activeItem--;
 	this->activeItem = modulo(this->activeItem, this->max);
 
 	this->Update();
+}
+
+SettingsWindowSelection SettingsWindow::Selected()
+{
+	if (this->activeItem != -1)
+	{
+		if (this->activeItem < settings->root["hiddenInterfaces"].size())
+		{
+			// Unhide this interface
+			logger->Log("Selected interface: ");
+			logger->Log(settings->root["hiddenInterfaces"][this->activeItem].asString());
+			logger->Log("\n");
+
+			Interface *toUnhide = getMatchingInterface(settings->root["hiddenInterfaces"][this->activeItem].asString().c_str());
+
+			Json::Value newArr;
+			for (int i = 0; i < settings->root["hiddenInterfaces"].size(); i++)
+			{
+				if (i != this->activeItem)
+				{
+					newArr.append(settings->root["hiddenInterfaces"][i].asString());
+				}
+			}
+			settings->root["hiddenInterfaces"] = newArr;
+			settings->SaveSettings();
+			
+			// Resize window
+			this->activeItem = -1;
+			this->Resize(this->placementX, this->placementY, this->width);
+			this->Update();
+
+			extern std::vector<InterfaceRow *> interfaceRows;
+			extern std::vector<Interface *> interfaces;
+
+			InterfaceRow *interfaceRow = new InterfaceRow(0, (interfaceRows.size() * 3) + 1, COLS, 3);
+			interfaceRows.push_back(interfaceRow);
+			toUnhide->AddToUI();
+			toUnhide->setInterfaceRow(interfaceRow);
+
+			// Return a value so that in main we create an interface row for the unhidden interface
+			return CREATE_NEW_INTERFACE;
+		}
+		else if (this->activeItem == settings->root["hiddenInterfaces"].size())
+		{
+			settings->root["zeroOnStart"] = settings->root["zeroOnStart"] == 0 ? 1 : 0;
+			settings->SaveSettings();
+
+			this->Update();
+		}
+	}
+
+	return NO_ACTION;
 }
