@@ -1,9 +1,11 @@
-#include "selectionWindow.h"
+#include "settingsWindow.h"
 
 
-SelectionWindow::SelectionWindow(GraphType graphType, int placementX, int placementY, int width, int height)
+extern Settings *settings;
+extern Logger *logger;
+
+SettingsWindow::SettingsWindow(int placementX, int placementY, int width, int height)
 {
-	this->graphType = graphType;
 	this->placementX = placementX;
 	this->placementY = placementY;
 	this->width = width;
@@ -14,13 +16,13 @@ SelectionWindow::SelectionWindow(GraphType graphType, int placementX, int placem
 	this->Update();
 }
 
-void SelectionWindow::Update()
+void SettingsWindow::Update()
 {
 	werase(this->win);
 	wborder(this->win, 0, 0, 0, 0, 0, 0, 0, 0);
 
 	char graphTypeString[graphTypeStringSize];
-	for (int i = 0; i < GT_END; i++)
+	for (int i = 0; i < SWO_END; i++)
 	{
 		getGraphTypeString((GraphType)i, graphTypeString);
 		if (i == activeItem)
@@ -37,36 +39,35 @@ void SelectionWindow::Update()
 	wrefresh(this->win);
 }
 
-GraphType SelectionWindow::GetActiveItemGraphType()
-{
-	return (GraphType)activeItem;
-}
-
-int SelectionWindow::GetActiveItem()
+int SettingsWindow::GetActiveItem()
 {
 	return this->activeItem;
 }
 
-void SelectionWindow::SetActiveItem(int activeItem)
+void SettingsWindow::SetActiveItem(int activeItem)
 {
+	this->max = SWO_END + settings->root["hiddenInterfaces"].size();
+	logger->Log("MAXIMUM: ");
+	logger->Log(std::to_string(this->max));
+	logger->Log("\n");
 	this->activeItem = activeItem;
-	this->activeItem = modulo(this->activeItem, GT_END);
+	this->activeItem = modulo(this->activeItem, SWO_END);
 
 	this->Update();
 }
 
-void SelectionWindow::IncrementActiveItem()
+void SettingsWindow::IncrementActiveItem()
 {
 	this->activeItem++;
-	this->activeItem = modulo(this->activeItem, GT_END);
+	this->activeItem = modulo(this->activeItem, SWO_END);
 
 	this->Update();
 }
 
-void SelectionWindow::DecrementActiveItem()
+void SettingsWindow::DecrementActiveItem()
 {
 	this->activeItem--;
-	this->activeItem = modulo(this->activeItem, GT_END);
+	this->activeItem = modulo(this->activeItem, SWO_END);
 
 	this->Update();
 }

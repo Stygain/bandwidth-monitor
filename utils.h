@@ -8,7 +8,24 @@
 #define DIFF_SECONDS 1
 
 
-#define GRAPH_MIN_WIDTH 37
+typedef enum
+{
+	SWO_HIDDEN_INTERFACES,
+	SWO_ZERO_ON_START,
+	SWO_END
+} SettingsWindowOption;
+
+#define settingsWindowOptionStringSize 18
+
+const char settingsWindowOptionStrings[3][settingsWindowOptionStringSize] =
+{
+	"Hidden Interfaces",
+	"Zero On Start",
+	"END"
+};
+
+
+#define GRAPH_MIN_WIDTH 45
 #define GRAPH_MIN_HEIGHT 20
 
 typedef enum
@@ -75,5 +92,6 @@ void getModeString(Mode mode, char *modeString);
 void getGraphTypeString(GraphType gt, char *graphTypeString);
 bool fileExists(const char * fileName);
 int modulo(int a, int b);
+void getSettingsWindowOptionString(SettingsWindowOption swo, char *settingsWindowOptionString);
 
 #endif

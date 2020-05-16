@@ -173,7 +173,7 @@ void GraphRow::Update(std::vector<GraphDataColumn *> *gDataCols, int max)
 		float split = (float)1 / (float)this->max;
 		if (valuePercent > currPos && valuePercent <= (currPos + split))
 		{
-			mvwprintw(this->win, 0, i, "_");
+			mvwprintw(this->win, 0, i, ".");
 		}
 		else if (valuePercent > currPos)
 		{
