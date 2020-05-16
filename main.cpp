@@ -13,6 +13,7 @@
 #include "graph.h"
 #include "interface.h"
 #include "selectionWindow.h"
+#include "settingsWindow.h"
 #include "utils.h"
 #include "logger.h"
 #include "settings.h"
@@ -28,6 +29,7 @@ std::vector<InterfaceRow *> interfaceRows;
 std::vector<Interface *> interfaces;
 Footer *footer = NULL;
 InterfaceDetailWindow *interfaceDetailWindow = NULL;
+SettingsWindow *settingsWindow = NULL;
 std::vector<Graph *> graphs;
 
 extern Logger *logger;
@@ -963,6 +965,10 @@ int main (int argc, char *argv[])
 			{
 				selectionWindow->Update();
 			}
+			if (settingsWindow != NULL)
+			{
+				settingsWindow->Update();
+			}
 
 			time(&lastTime);
 			time(&now);
@@ -1023,6 +1029,20 @@ int main (int argc, char *argv[])
 
 					updateInterfaceUI();
 				}
+				else if (mode == MODE_SETTINGS)
+				{
+					mode = MODE_NORMAL;
+					footer->UpdateMode(mode);
+					footer->Print();
+
+					if (settingsWindow != NULL)
+					{
+						delete settingsWindow;
+						settingsWindow = NULL;
+					}
+
+					updateInterfaceUI();
+				}
 				else
 				{
 					break;
@@ -1066,6 +1086,13 @@ int main (int argc, char *argv[])
 						if (interfaceDetailWindow != NULL)
 						{
 							interfaceDetailWindow->IncrementActiveItem();
+						}
+					}
+					else if (mode == MODE_SETTINGS)
+					{
+						if (settingsWindow != NULL)
+						{
+							settingsWindow->IncrementActiveItem();
 						}
 					}
 
@@ -1124,6 +1151,20 @@ int main (int argc, char *argv[])
 							else
 							{
 								interfaceDetailWindow->SetActiveItem(interfaceDetailWindow->GetActiveItem());
+							}
+						}
+					}
+					else if (mode == MODE_SETTINGS)
+					{
+						if (settingsWindow != NULL)
+						{
+							if (settingsWindow->GetActiveItem() != -1)
+							{
+								settingsWindow->DecrementActiveItem();
+							}
+							else
+							{
+								settingsWindow->SetActiveItem(settingsWindow->GetActiveItem());
 							}
 						}
 					}
@@ -1189,6 +1230,22 @@ int main (int argc, char *argv[])
 					}
 
 					mode = MODE_SEARCH;
+					footer->UpdateMode(mode);
+					footer->Print();
+
+					break;
+				}
+
+				case (int)'S':
+				{
+					if (mode != MODE_NORMAL)
+					{
+						break;
+					}
+
+					settingsWindow = new SettingsWindow(0, 0, COLS);
+
+					mode = MODE_SETTINGS;
 					footer->UpdateMode(mode);
 					footer->Print();
 
@@ -1399,6 +1456,10 @@ int main (int argc, char *argv[])
 								}
 							}
 						}
+					}
+					else if (mode == MODE_SETTINGS)
+					{
+						//SettingsWindowOption activeSwo = (SettingsWindowOption)settingsWindow->GetActiveItem();
 					}
 
 					break;

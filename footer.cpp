@@ -60,10 +60,15 @@ void Footer::Print()
 		wprintw(this->win, " %s | %s ",
 				"jk enter to Select", "q Quit");
 	}
+	else if (mode == MODE_SETTINGS)
+	{
+		wprintw(this->win, " %s | %s ",
+				"jk enter to Select", "q Quit");
+	}
 	else
 	{
-		wprintw(this->win, " %s | %s | %s | %s | %s | %s | %s ",
-		"jk enter to Select", "q Quit", "d Deselect", "s Sort", "g Graph", "z Zero", "Z Un-Zero");
+		wprintw(this->win, " %s | %s | %s | %s | %s | %s | %s | %s ",
+		"jk enter to Select", "q Quit", "d Deselect", "s Sort", "S Settings", "g Graph", "z Zero", "Z Un-Zero");
 	}
 	wattroff(this->win, COLOR_PAIR(OPTION_COLOR));
 

@@ -14,7 +14,7 @@
 class SettingsWindow
 {
 	public:
-		SettingsWindow(int placementX, int placementY, int width, int height);
+		SettingsWindow(int placementX, int placementY, int width);
 
 		void Update();
 
