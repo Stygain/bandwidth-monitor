@@ -28,6 +28,7 @@ InterfaceHeader *interfaceHeader = NULL;
 std::vector<InterfaceRow *> interfaceRows;
 std::vector<Interface *> interfaces;
 Footer *footer = NULL;
+SelectionWindow *selectionWindow = NULL;
 InterfaceDetailWindow *interfaceDetailWindow = NULL;
 SettingsWindow *settingsWindow = NULL;
 std::vector<Graph *> graphs;
@@ -388,6 +389,7 @@ GraphMode resizeUI()
 
 	footer->Resize(0, LINES-1, COLS, 1);
 
+
 	switch (gm)
 	{
 		case GM_ONE:
@@ -604,6 +606,11 @@ GraphMode resizeUI()
 			}
 			break;
 		}
+	}
+
+	if (selectionWindow != NULL)
+	{
+		selectionWindow->AutoResize();
 	}
 
 	return gm;
@@ -824,7 +831,6 @@ int main (int argc, char *argv[])
 	}
 
 	footer = new Footer(0, LINES-1, COLS, 1);
-	SelectionWindow *selectionWindow = NULL;
 
 	GraphType gt0 = (GraphType)settings->root["graphs"][0].asInt();
 	GraphType gt1 = (GraphType)settings->root["graphs"][1].asInt();
@@ -1336,6 +1342,7 @@ int main (int argc, char *argv[])
 
 							int graphIndex = getGraphIndex(activeGraph);
 							selectionWindow = new SelectionWindow(graphs[graphIndex]->GetGraphType(), graphs[graphIndex]->GetPlacementX(), graphs[graphIndex]->GetPlacementY() + 1, graphTypeStringSize + 1, (int)GT_END + 2);
+							selectionWindow->SetGraph(graphs[graphIndex]);
 						}
 					}
 					else if (mode == MODE_GRAPH_SELECTION)

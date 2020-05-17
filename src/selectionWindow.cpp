@@ -14,6 +14,32 @@ SelectionWindow::SelectionWindow(GraphType graphType, int placementX, int placem
 	this->Update();
 }
 
+void SelectionWindow::AutoResize()
+{
+	this->placementX = this->graph->GetPlacementX();
+	this->placementY = this->graph->GetPlacementY() + 1;
+	this->width = graphTypeStringSize + 1;
+	this->height = (int)GT_END + 2;
+
+	wresize(this->win, this->height, this->width);
+	mvwin(this->win, this->placementY, this->placementX);
+
+	this->Update();
+}
+
+void SelectionWindow::Resize(int placementX, int placementY, int width, int height)
+{
+	this->placementX = placementX;
+	this->placementY = placementY;
+	this->width = width;
+	this->height = height;
+
+	wresize(this->win, this->height, this->width);
+	mvwin(this->win, this->placementY, this->placementX);
+
+	this->Update();
+}
+
 void SelectionWindow::Update()
 {
 	werase(this->win);
@@ -70,3 +96,9 @@ void SelectionWindow::DecrementActiveItem()
 
 	this->Update();
 }
+
+void SelectionWindow::SetGraph(Graph *graph)
+{
+	this->graph = graph;
+}
+

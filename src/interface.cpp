@@ -144,50 +144,53 @@ void Interface::Update()
 	unsigned long int r_packets;
 	unsigned long int t_packets;
 
-	// skip first two lines
-	for (int i = 0; i < 2; i++) {
-		fgets(buf, 200, fp);
-	}
-
-	while (fgets(buf, 200, fp)) {
-		sscanf(buf, "%s %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
-				ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
-		ifname[strlen(ifname) - 1] = '\0';
-
-		if (strcmp(ifname, this->name) == 0)
-		{
-			this->r_bytesLastLast = this->r_bytesLast;
-			this->r_bytesLast = this->r_bytes;
-			this->r_bytes = r_bytes;
-			this->t_bytesLastLast = this->t_bytesLast;
-			this->t_bytesLast = this->t_bytes;
-			this->t_bytes = t_bytes;
-			this->r_packetsLast = this->r_packets;
-			this->r_packets = r_packets;
-			this->t_packetsLast = this->t_packets;
-			this->t_packets = t_packets;
-
-			if (((this->r_bytes - this->r_bytesLast) + (this->r_bytesLast - this->r_bytesLastLast)) == 0)
-			{
-				this->r_bps = 0;
-			}
-			else
-			{
-				this->r_bps = (int)(((this->r_bytes - this->r_bytesLast) + (this->r_bytesLast - this->r_bytesLastLast)) / 2);
-			}
-			if (((this->t_bytes - this->t_bytesLast) + (this->t_bytesLast - this->t_bytesLastLast)) == 0)
-			{
-				this->t_bps = 0;
-			}
-			else
-			{
-				this->t_bps = (int)(((this->t_bytes - this->t_bytesLast) + (this->t_bytesLast - this->t_bytesLastLast)) / 2);
-			}
-			break;
+	if (fp != NULL)
+	{
+		// skip first two lines
+		for (int i = 0; i < 2; i++) {
+			fgets(buf, 200, fp);
 		}
-	}
 
-	fclose(fp);
+		while (fgets(buf, 200, fp)) {
+			sscanf(buf, "%s %lu %lu %*lu %*lu %*lu %*lu %*lu %*lu %lu %lu",
+					ifname, &r_bytes, &r_packets, &t_bytes, &t_packets);
+			ifname[strlen(ifname) - 1] = '\0';
+
+			if (strcmp(ifname, this->name) == 0)
+			{
+				this->r_bytesLastLast = this->r_bytesLast;
+				this->r_bytesLast = this->r_bytes;
+				this->r_bytes = r_bytes;
+				this->t_bytesLastLast = this->t_bytesLast;
+				this->t_bytesLast = this->t_bytes;
+				this->t_bytes = t_bytes;
+				this->r_packetsLast = this->r_packets;
+				this->r_packets = r_packets;
+				this->t_packetsLast = this->t_packets;
+				this->t_packets = t_packets;
+
+				if (((this->r_bytes - this->r_bytesLast) + (this->r_bytesLast - this->r_bytesLastLast)) == 0)
+				{
+					this->r_bps = 0;
+				}
+				else
+				{
+					this->r_bps = (int)(((this->r_bytes - this->r_bytesLast) + (this->r_bytesLast - this->r_bytesLastLast)) / 2);
+				}
+				if (((this->t_bytes - this->t_bytesLast) + (this->t_bytesLast - this->t_bytesLastLast)) == 0)
+				{
+					this->t_bps = 0;
+				}
+				else
+				{
+					this->t_bps = (int)(((this->t_bytes - this->t_bytesLast) + (this->t_bytesLast - this->t_bytesLastLast)) / 2);
+				}
+				break;
+			}
+		}
+
+		fclose(fp);
+	}
 
 	char ifaceType[] = "/sys/class/net/";
 	strcat(ifaceType, this->name);
