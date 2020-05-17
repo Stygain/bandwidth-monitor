@@ -10,7 +10,13 @@ This is a side-project of mine to monitor and visualize network traffic at a hig
 - Automatically configured display of graphs based on screen size, resizes with terminal resize
 
 ## Interface
-![](./screencaps/demo.gif))
-![](./screencaps/resizing.gif))
-![](./screencaps/graphInterfaceSelection.gif))
+
+### Demo of the main functionality
+![](./screencaps/demo.gif)
+
+### Demo of interface resizing
+![](./screencaps/resizing.gif)
+
+### Demo of isolation of the graphs to certain interfaces
+![](./screencaps/graphInterfaceSelection.gif)
 
